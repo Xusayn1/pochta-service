@@ -1,0 +1,165 @@
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #f5f5f5;
+}
+
+/* HEADER */
+.header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 40px;
+    background: white;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+.logo span {
+    color: green;
+}
+
+nav a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #555;
+}
+
+.order-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: green;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.order-btn:hover {
+    background: darkgreen;
+}
+
+/* HERO */
+.hero {
+    display: flex;
+    justify-content: space-between;
+    padding: 60px;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e6f7ec 100%);
+}
+
+/* LEFT */
+.hero-left {
+    max-width: 500px;
+}
+
+.badge {
+    background: #e6f7ec;
+    color: green;
+    padding: 8px 12px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.hero-left h1 {
+    font-size: 40px;
+    margin: 20px 0;
+}
+
+.buttons {
+    margin: 20px 0;
+}
+
+.primary {
+    background: green;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.primary:hover {
+    background: darkgreen;
+}
+
+.secondary {
+    padding: 12px 20px;
+    margin-left: 10px;
+    background: white;
+    border: 1px solid green;
+    color: green;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.secondary:hover {
+    background: #e6f7ec;
+}
+
+/* STATS */
+.stats {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.stats div {
+    display: flex;
+    flex-direction: column;
+}
+
+/* TRACKING CARD */
+.tracking-card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    width: 350px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.tracking-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.live {
+    color: green;
+}
+
+/* STEPS */
+.steps {
+    margin: 20px 0;
+}
+
+.step {
+    margin-bottom: 10px;
+    color: #aaa;
+}
+
+.step.done {
+    color: green;
+}
+
+.step.active {
+    color: green;
+    font-weight: bold;
+}
+
+/* COURIER */
+.courier {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f3f3f3;
+    padding: 10px;
+    border-radius: 15px;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}

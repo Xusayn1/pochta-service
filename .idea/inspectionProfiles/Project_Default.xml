@@ -1,0 +1,42 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="aiohttp" />
+          <option value="aiosignal" />
+          <option value="altair" />
+          <option value="beautifulsoup4" />
+          <option value="click" />
+          <option value="contourpy" />
+          <option value="control" />
+          <option value="dash" />
+          <option value="gitdb" />
+          <option value="gunicorn" />
+          <option value="matplotlib" />
+          <option value="pandas" />
+          <option value="pipenv" />
+          <option value="plotly" />
+          <option value="pydeck" />
+          <option value="pytest" />
+          <option value="python-dateutil" />
+          <option value="requests" />
+          <option value="scipy" />
+          <option value="seaborn" />
+          <option value="streamlit" />
+          <option value="telebot" />
+          <option value="translate" />
+          <option value="wikipedia" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="_random.random.*" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
