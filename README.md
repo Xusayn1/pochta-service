@@ -1,46 +1,62 @@
-Project architecture :
+## 🏗️ Project Architecture
 pochta-service/
-├── .github/               # GitHub workflows (CI/CD)
-├── backend/               # Django backend
-│   ├── apps/
-│   │   ├── users/         # Foydalanuvchilar (auth, profil)
-│   │   ├── orders/        # Buyurtmalar
-│   │   ├── shipments/     # Yetkazib berishlar
-│   │   ├── locations/     # Shahar/viloyatlar, filiallar
-│   │   ├── payments/      # To‘lov tizimi
-│   │   ├── tracking/      # Trek-nomerlar, kuzatuv
-│   │   ├── notifications/ # SMS, email, push bildirishnomalar
-│   │   ├── reports/       # Hisobotlar
-│   │   └── api/           # API v1/v2 (REST + WebSocket)
-│   ├── core/              # Asosiy sozlamalar
-│   ├── static/            # Statik fayllar
-│   ├── media/             # Yuklangan fayllar
-│   ├── templates/         # HTML template-lar
-│   ├── requirements.txt
-│   └── manage.py
-├── frontend/              # React/Vue.js frontend
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/      # API call'lar
-│   │   └── utils/
-│   └── package.json
-├── telegram_bot/          # Telegram bot
-│   ├── handlers/
-│   ├── keyboards/
-│   ├── utils/
-│   └── bot.py
-├── docker/                # Docker konfiguratsiyalar
-│   ├── Dockerfile.backend
-│   ├── Dockerfile.frontend
-│   └── docker-compose.yml
-├── docs/                  # Hujjatlar
-│   ├── api.md
-│   ├── database.md
-│   └── deployment.md
-├── scripts/               # Yordamchi skriptlar
-├── .env.example
+├── .github/ # GitHub workflows (CI/CD)
+│ └── workflows/
+│ ├── deploy.yml
+│ └── tests.yml
+│
+├── backend/ # Django backend
+│ ├── apps/
+│ │ ├── users/ # Foydalanuvchilar (auth, profil)
+│ │ ├── orders/ # Buyurtmalar
+│ │ ├── shipments/ # Yetkazib berishlar
+│ │ ├── locations/ # Shahar/viloyatlar, filiallar
+│ │ ├── payments/ # To‘lov tizimi
+│ │ ├── tracking/ # Trek-nomerlar, kuzatuv
+│ │ ├── notifications/ # SMS, email, push bildirishnomalar
+│ │ ├── reports/ # Hisobotlar
+│ │ └── api/ # API v1/v2 (REST + WebSocket)
+│ ├── core/ # Asosiy sozlamalar
+│ │ ├── settings.py
+│ │ ├── urls.py
+│ │ └── wsgi.py
+│ ├── static/ # Statik fayllar
+│ ├── media/ # Yuklangan fayllar
+│ ├── templates/ # HTML template-lar
+│ ├── requirements.txt
+│ └── manage.py
+│
+├── frontend/ # React/Vue.js frontend
+│ ├── public/
+│ │ └── index.html
+│ ├── src/
+│ │ ├── components/ # React komponentlari
+│ │ ├── pages/ # Sahifalar
+│ │ ├── services/ # API call'lar
+│ │ └── utils/ # Yordamchi funksiyalar
+│ └── package.json
+│
+├── telegram_bot/ # Telegram bot
+│ ├── handlers/ # Message handlerlar
+│ ├── keyboards/ # Klaviatura tugmalari
+│ ├── utils/ # Yordamchi funksiyalar
+│ └── bot.py # Bot asosiy fayli
+│
+├── docker/ # Docker konfiguratsiyalar
+│ ├── Dockerfile.backend
+│ ├── Dockerfile.frontend
+│ └── docker-compose.yml
+│
+├── docs/ # Hujjatlar
+│ ├── api.md
+│ ├── database.md
+│ └── deployment.md
+│
+├── scripts/ # Yordamchi skriptlar
+│ ├── backup.sh
+│ └── seed_data.py
+│
+├── .env.example # Environment o'zgaruvchilar namunasi
 ├── .gitignore
 └── README.md
 
