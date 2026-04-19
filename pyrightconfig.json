@@ -1,0 +1,18 @@
+{
+    "venvPath": ".",
+    "venv": ".venv",
+    "include": [
+        "apps",
+        "core",
+        "manage.py"
+    ],
+    "executionEnvironments": [
+        {
+            "root": ".",
+            "extraPaths": [
+                ".",
+                "apps"
+            ]
+        }
+    ]
+}
