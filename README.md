@@ -96,6 +96,7 @@ pochta-service/
 - **Couriers** - Real-time delivery management
 
 ## 🏗️ System Architecture
+```
 ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
 │ Web App │ │ Telegram Bot│ │ Mobile App │
 │ (React) │ │ (Python) │ │ (Future) │
@@ -114,6 +115,7 @@ pochta-service/
 │ PostgreSQL │ │ Redis │ │ Celery │
 │ (Main DB) │ │ (Cache) │ │ (Tasks) │
 └─────────────┘ └─────────────┘ └─────────────┘
+```
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
