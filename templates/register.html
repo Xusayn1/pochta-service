@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | Pochta-Service</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body class="auth-page">
+  <nav id="navbar" class="scrolled">
+    <a href="/" class="nav-logo">Pochta<span>·</span>Service</a>
+    <ul class="nav-links">
+      <li><a href="/#services">Services</a></li>
+      <li><a href="/#track">Track</a></li>
+      <li><a href="/#coverage">Coverage</a></li>
+      <li><a href="/#pricing">Pricing</a></li>
+      <li><a href="/#contact">Contact</a></li>
+      <li class="guest-only-link"><a href="/register">Register</a></li>
+      <li class="guest-only-link"><a href="/login">Login</a></li>
+      <li class="auth-only-link" style="display:none;"><a href="#" id="logoutLink">Logout</a></li>
+    </ul>
+    <a href="/#contact" class="nav-cta">Get Started</a>
+  </nav>
+
+  <main class="auth-main">
+    <section class="auth-card">
+      <h1>Create Account</h1>
+      <p>Choose your role and start using Pochta-Service.</p>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required />
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <input id="regPassword" name="password" type="password" required />
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input id="confirmPassword" name="confirm_password" type="password" required />
+        </div>
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select id="role" name="role" required>
+            <option value="customer">Customer</option>
+            <option value="courier">Courier</option>
+          </select>
+        </div>
+        <button class="btn-track" type="submit">Register</button>
+      </form>
+
+      <div id="formError" class="auth-feedback auth-error"></div>
+      <div id="formSuccess" class="auth-feedback auth-success"></div>
+      <div class="auth-link-row">
+        Already have an account? <a href="/login">Login</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="auth-footer">
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 Pochta-Service. All rights reserved.</div>
+      <div class="footer-legal">
+        <a href="/">Home</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/auth.js" defer></script>
+</body>
+</html>

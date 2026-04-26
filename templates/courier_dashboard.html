@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Courier Dashboard — Pochta-Service</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/courier_dashboard.css' %}" />
+</head>
+<body>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <div class="toast" id="toast">
+    <div class="toast-dot"></div>
+    <span id="toastMsg">Order accepted successfully.</span>
+  </div>
+
+  <div class="notification-banner" id="notifBanner">
+    <div class="notif-header">
+      <div class="notif-icon">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </div>
+      <div class="notif-title">New Order Available</div>
+      <button class="notif-close" onclick="closeNotif()">×</button>
+    </div>
+    <div class="notif-msg">A new Express order just arrived near Yunusobod district — 0.8km from you.</div>
+  </div>
+
+  <div class="modal-overlay" id="modalOrderDetails">
+    <div class="modal">
+      <div class="modal-title">Order <em id="modalOrderId">#PS-2847</em></div>
+      <div class="modal-sub">Review all details before accepting this delivery assignment.</div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Type</span><span class="modal-detail-val" id="md-type">Express</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">From</span><span class="modal-detail-val" id="md-from">12 Amir Temur Ave, Tashkent</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">To</span><span class="modal-detail-val" id="md-to">Yunusobod, Block 4, Apt 31</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Weight</span><span class="modal-detail-val" id="md-weight">3.2 kg</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Distance</span><span class="modal-detail-val" id="md-dist">4.1 km</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Customer</span><span class="modal-detail-val" id="md-customer">A. Karimov</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Earnings</span><span class="modal-detail-val gold" id="md-earn">UZS 35,000</span></div>
+      <div class="modal-actions">
+        <button class="modal-btn-primary" onclick="acceptOrderFromModal()"><span>Accept Order</span></button>
+        <button class="modal-btn-ghost" onclick="closeModal('modalOrderDetails')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalDeliver">
+    <div class="modal">
+      <div class="complete-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2a7a4f" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="modal-title">Mark as <em>Delivered</em></div>
+      <div class="modal-sub">Confirm that you have successfully delivered this parcel to the recipient.</div>
+      <div class="earnings-highlight">
+        <div class="earnings-label">Your earnings for this delivery</div>
+        <div class="earnings-amount">UZS 52,000</div>
+      </div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Order</span><span class="modal-detail-val">#PS-2831</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Recipient</span><span class="modal-detail-val">D. Yusupov</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Address</span><span class="modal-detail-val">Chilonzor, Block 11, Apt 5</span></div>
+      <div class="modal-actions">
+        <button class="modal-btn-primary" onclick="confirmDelivered()"><span>✓ Confirm Delivered</span></button>
+        <button class="modal-btn-ghost" onclick="closeModal('modalDeliver')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <a href="/" class="nav-logo">Pochta<span>·</span>Service</a>
+    <div class="nav-center">
+      <div class="nav-center-dot"></div>
+      Courier Portal
+      <div class="nav-center-dot"></div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-courier-badge">Online · Tashkent</div>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="#" id="logoutLink">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <p class="sidebar-section-label">Main</p>
+      <ul class="sidebar-nav">
+        <li>
+          <a href="#" class="active" onclick="showTab('available'); return false;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Available Orders
+            <span class="sidebar-badge new" id="badge-available">7</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="showTab('active'); return false;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            Active Delivery
+            <span class="sidebar-badge" id="badge-active">1</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="showTab('history'); return false;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v10l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+            Delivery History
+          </a>
+        </li>
+      </ul>
+
+      <p class="sidebar-section-label">Account</p>
+      <ul class="sidebar-nav">
+        <li>
+          <a href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Earnings
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            My Profile
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            Settings
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="courier-profile">
+          <div class="courier-avatar">AK</div>
+          <div class="courier-info">
+            <div class="courier-name">Aziz Kamolov</div>
+            <div class="courier-role">Courier · Active</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div id="tab-available">
+        <div class="page-header fade-in">
+          <div>
+            <div class="page-eyebrow">
+              <div class="page-eyebrow-line"></div>
+              <span>Live Feed</span>
+            </div>
+            <h1 class="page-title">Available <em>Orders</em></h1>
+            <p class="page-subtitle">7 orders waiting near your location · Updated just now</p>
+          </div>
+          <div class="status-toggle">
+            <span class="status-toggle-label">Status</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="statusToggle" checked onchange="toggleStatus(this)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+            <span class="status-val" id="statusVal">Online</span>
+          </div>
+        </div>
+
+        <div class="stats-row fade-in delay-1">
+          <div class="stat-card">
+            <div class="stat-label">Today's Deliveries</div>
+            <div class="stat-num"><span>4</span></div>
+            <div class="stat-change up">↑ 2 from yesterday</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Today's Earnings</div>
+            <div class="stat-num"><span>182</span><span style="font-size:1.2rem;color:rgba(255,255,255,0.3)">,000</span></div>
+            <div class="stat-change up">↑ UZS 47,000 from avg</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg. Rating</div>
+            <div class="stat-num"><span>4</span><span style="font-size:1.4rem">.9</span></div>
+            <div class="stat-change">Based on 142 reviews</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Completion Rate</div>
+            <div class="stat-num"><span>98</span><span style="font-size:1.4rem">%</span></div>
+            <div class="stat-change up">Top 5% this week</div>
+          </div>
+        </div>
+
+        <div class="section-head fade-in delay-2">
+          <div class="section-head-left">
+            <div class="section-head-line"></div>
+            <h2>Nearby <em>Orders</em></h2>
+          </div>
+          <div class="section-filter">
+            <button class="filter-btn active" onclick="filterOrders(this, 'all')">All</button>
+            <button class="filter-btn" onclick="filterOrders(this, 'express')">Express</button>
+            <button class="filter-btn" onclick="filterOrders(this, 'standard')">Standard</button>
+          </div>
+        </div>
+
+        <div id="orders-container" class="orders-grid fade-in delay-3"></div>
+      </div>
+
+      <div id="tab-active" style="display:none">
+        <div class="page-header fade-in">
+          <div>
+            <div class="page-eyebrow">
+              <div class="page-eyebrow-line"></div>
+              <span>In Progress</span>
+            </div>
+            <h1 class="page-title">Active <em>Delivery</em></h1>
+            <p class="page-subtitle">You have 1 order currently in progress</p>
+          </div>
+        </div>
+
+        <div id="active-order-container"></div>
+
+        <div id="noActiveDelivery" style="display:none">
+          <div class="empty-state fade-in delay-2">
+            <div class="empty-icon">📦</div>
+            <div class="empty-title">No active delivery</div>
+            <div class="empty-sub">Accept an order from the Available Orders tab to start delivering.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-history" style="display:none">
+        <div class="page-header fade-in">
+          <div>
+            <div class="page-eyebrow">
+              <div class="page-eyebrow-line"></div>
+              <span>Records</span>
+            </div>
+            <h1 class="page-title">Delivery <em>History</em></h1>
+            <p class="page-subtitle">All your completed and past deliveries</p>
+          </div>
+        </div>
+
+        <div class="stats-row fade-in delay-1">
+          <div class="stat-card">
+            <div class="stat-label">Total Delivered</div>
+            <div class="stat-num"><span>142</span></div>
+            <div class="stat-change up">Since joining</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">This Month</div>
+            <div class="stat-num"><span>38</span></div>
+            <div class="stat-change up">↑ 12 vs last month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Earnings</div>
+            <div class="stat-num"><span>5.2</span><span style="font-size:1.2rem">M</span></div>
+            <div class="stat-change">UZS all time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Satisfaction</div>
+            <div class="stat-num"><span>4</span><span style="font-size:1.4rem">.9</span></div>
+            <div class="stat-change up">★ Excellent courier</div>
+          </div>
+        </div>
+
+        <div class="section-head fade-in delay-2">
+          <div class="section-head-left">
+            <div class="section-head-line"></div>
+            <h2>Past <em>Deliveries</em></h2>
+          </div>
+        </div>
+
+        <table class="history-table fade-in delay-3">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Route</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Earned</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="td-id">#PS-2820</span></td>
+              <td>Mirzo Ulugbek → Yunusobod</td>
+              <td>Express</td>
+              <td>Apr 25, 2026</td>
+              <td style="color:var(--gold)">UZS 52,000</td>
+              <td><span class="status-pill delivered">Delivered</span></td>
+            </tr>
+            <tr>
+              <td><span class="td-id">#PS-2815</span></td>
+              <td>Chorsu → Chilonzor</td>
+              <td>Standard</td>
+              <td>Apr 25, 2026</td>
+              <td style="color:var(--gold)">UZS 22,000</td>
+              <td><span class="status-pill delivered">Delivered</span></td>
+            </tr>
+            <tr>
+              <td><span class="td-id">#PS-2808</span></td>
+              <td>Navoi Ave → Sergeli</td>
+              <td>Fragile</td>
+              <td>Apr 24, 2026</td>
+              <td style="color:var(--gold)">UZS 48,000</td>
+              <td><span class="status-pill delivered">Delivered</span></td>
+            </tr>
+            <tr>
+              <td><span class="td-id">#PS-2798</span></td>
+              <td>Beruniy → Uchtepa</td>
+              <td>Standard</td>
+              <td>Apr 24, 2026</td>
+              <td style="color:rgba(255,255,255,0.3)">—</td>
+              <td><span class="status-pill cancelled">Cancelled</span></td>
+            </tr>
+            <tr>
+              <td><span class="td-id">#PS-2791</span></td>
+              <td>Old Town → Almazar</td>
+              <td>Express</td>
+              <td>Apr 23, 2026</td>
+              <td style="color:var(--gold)">UZS 35,000</td>
+              <td><span class="status-pill delivered">Delivered</span></td>
+            </tr>
+            <tr>
+              <td><span class="td-id">#PS-2782</span></td>
+              <td>Shaykhantakhur → Yakkasaray</td>
+              <td>Standard</td>
+              <td>Apr 23, 2026</td>
+              <td style="color:var(--gold)">UZS 18,000</td>
+              <td><span class="status-pill delivered">Delivered</span></td>
+            </tr>
+            <tr>
+              <td><span class="td-id">#PS-2775</span></td>
+              <td>Amir Temur Ave → Sergeli</td>
+              <td>Express</td>
+              <td>Apr 22, 2026</td>
+              <td style="color:var(--gold)">UZS 44,000</td>
+              <td><span class="status-pill delivered">Delivered</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="{% static 'js/auth.js' %}" defer></script>
+  <script src="{% static 'js/courier_dashboard.js' %}"></script>
+</body>
+</html>

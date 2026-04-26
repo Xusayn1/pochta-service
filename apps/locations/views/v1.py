@@ -1,52 +1,24 @@
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
+from rest_framework import generics
 
-from apps.locations.models import Branch, District, Region
-from .serializers import BranchSerializer, DistrictSerializer, RegionSerializer
+from apps.locations.models import City, Region
+from apps.locations.serializers.v1 import CitySerializer, RegionSerializer
 
 
-class RegionViewSet(viewsets.ReadOnlyModelViewSet):
+class RegionListView(generics.ListAPIView):
+    """List all active regions (public)"""
     queryset = Region.objects.filter(is_active=True)
     serializer_class = RegionSerializer
-
-    @action(detail=True, methods=["get"])
-    def districts(self, request, pk=None):
-        districts = District.objects.filter(region=self.get_object(), is_active=True)
-        serializer = DistrictSerializer(
-            districts,
-            many=True,
-            context=self.get_serializer_context(),
-        )
-        return Response(serializer.data)
+    permission_classes = []  # Allow any
 
 
-class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.filter(is_active=True).select_related("region")
-    serializer_class = DistrictSerializer
+class CityListView(generics.ListAPIView):
+    """List cities, optionally filtered by region (public)"""
+    serializer_class = CitySerializer
+    permission_classes = []  # Allow any
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        region_id = self.request.query_params.get("region")
+        queryset = City.objects.filter(is_active=True).select_related('region')
+        region_id = self.request.query_params.get('region')
         if region_id:
             queryset = queryset.filter(region_id=region_id)
-        return queryset
-
-
-class BranchViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Branch.objects.filter(is_active=True).select_related("region", "district")
-    serializer_class = BranchSerializer
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        region_id = self.request.query_params.get("region")
-        district_id = self.request.query_params.get("district")
-        branch_type = self.request.query_params.get("branch_type")
-
-        if region_id:
-            queryset = queryset.filter(region_id=region_id)
-        if district_id:
-            queryset = queryset.filter(district_id=district_id)
-        if branch_type:
-            queryset = queryset.filter(branch_type=branch_type)
         return queryset

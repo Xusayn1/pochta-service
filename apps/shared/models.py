@@ -1,3 +1,4 @@
+import mimetypes
 import os
 import uuid
 
@@ -100,6 +101,36 @@ class Media(BaseModel):
     def __str__(self):
         return f"{self.original_name} ({self.file_type})"
 
+    @classmethod
+    def detect_file_type(cls, mime_type: str) -> str:
+        """Detect FileType from MIME type string."""
+        if not mime_type:
+            return cls.FileType.OTHER
+
+        mime_lower = mime_type.lower()
+        for prefix, file_type in cls.MIME_TYPE_MAP.items():
+            if mime_lower.startswith(prefix):
+                return file_type
+        return cls.FileType.OTHER
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            if not self.original_name:
+                self.original_name = os.path.basename(self.file.name)
+
+            detected_size = getattr(self.file, 'size', None)
+            if detected_size is not None:
+                self.size = detected_size
+
+            if not self.mime_type:
+                guessed_mime_type, _ = mimetypes.guess_type(self.file.name)
+                self.mime_type = guessed_mime_type or ''
+
+            if not self.file_type or self.file_type == self.FileType.OTHER:
+                self.file_type = self.detect_file_type(self.mime_type)
+
+        super().save(*args, **kwargs)
+
 
 class Onboarding(models.Model):
     """
@@ -133,18 +164,3 @@ class FAQ(models.Model):
 
     def __str__(self):
         return self.question
-
-    @classmethod
-    def detect_file_type(cls, mime_type: str) -> str:
-        """Detect FileType from MIME type string"""
-        if not mime_type:
-            return cls.FileType.OTHER
-
-        mime_lower = mime_type.lower()
-
-        # Check exact/prefix matches
-        for prefix, file_type in cls.MIME_TYPE_MAP.items():
-            if mime_lower.startswith(prefix):
-                return file_type
-
-        return cls.FileType.OTHER

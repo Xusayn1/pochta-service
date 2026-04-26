@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Courier Dashboard — Pochta-Service</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/courier-dashboard.css" />
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toastMsg">Order accepted successfully.</span>
+</div>
+
+<!-- NOTIFICATION BANNER -->
+<div class="notification-banner" id="notifBanner">
+  <div class="notif-header">
+    <div class="notif-icon">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    </div>
+    <div class="notif-title">New Order Available</div>
+    <button class="notif-close" onclick="closeNotif()">×</button>
+  </div>
+  <div class="notif-msg">A new Express order just arrived near Yunusobod district — 0.8km from you.</div>
+</div>
+
+<!-- MODAL: ORDER DETAILS -->
+<div class="modal-overlay" id="modalOrderDetails">
+  <div class="modal">
+    <div class="modal-title">Order <em id="modalOrderId">#PS-2847</em></div>
+    <div class="modal-sub">Review all details before accepting this delivery assignment.</div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Type</span><span class="modal-detail-val" id="md-type">Express</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">From</span><span class="modal-detail-val" id="md-from">12 Amir Temur Ave, Tashkent</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">To</span><span class="modal-detail-val" id="md-to">Yunusobod, Block 4, Apt 31</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Weight</span><span class="modal-detail-val" id="md-weight">3.2 kg</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Distance</span><span class="modal-detail-val" id="md-dist">4.1 km</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Customer</span><span class="modal-detail-val" id="md-customer">A. Karimov</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Earnings</span><span class="modal-detail-val gold" id="md-earn">UZS 35,000</span></div>
+    <div class="modal-actions">
+      <button class="modal-btn-primary" onclick="acceptOrderFromModal()"><span>Accept Order</span></button>
+      <button class="modal-btn-ghost" onclick="closeModal('modalOrderDetails')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MARK DELIVERED -->
+<div class="modal-overlay" id="modalDeliver">
+  <div class="modal">
+    <div class="complete-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2a7a4f" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div class="modal-title">Mark as <em>Delivered</em></div>
+    <div class="modal-sub">Confirm that you have successfully delivered this parcel to the recipient.</div>
+    <div class="earnings-highlight">
+      <div class="earnings-label">Your earnings for this delivery</div>
+      <div class="earnings-amount">UZS 52,000</div>
+    </div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Order</span><span class="modal-detail-val">#PS-2831</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Recipient</span><span class="modal-detail-val">D. Yusupov</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Address</span><span class="modal-detail-val">Chilonzor, Block 11, Apt 5</span></div>
+    <div class="modal-actions">
+      <button class="modal-btn-primary" onclick="confirmDelivered()"><span>✓ Confirm Delivered</span></button>
+      <button class="modal-btn-ghost" onclick="closeModal('modalDeliver')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#" class="nav-logo">Pochta<span>·</span>Service</a>
+  <div class="nav-center">
+    <div class="nav-center-dot"></div>
+    Courier Portal
+    <div class="nav-center-dot"></div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-courier-badge">Online · Tashkent</div>
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- DASHBOARD LAYOUT -->
+<div class="dashboard-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <p class="sidebar-section-label">Main</p>
+    <ul class="sidebar-nav">
+      <li>
+        <a href="#" class="active" onclick="showTab('available'); return false;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Available Orders
+          <span class="sidebar-badge new" id="badge-available">7</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" onclick="showTab('active'); return false;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+          Active Delivery
+          <span class="sidebar-badge" id="badge-active">1</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" onclick="showTab('history'); return false;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v10l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+          Delivery History
+        </a>
+      </li>
+    </ul>
+
+    <p class="sidebar-section-label">Account</p>
+    <ul class="sidebar-nav">
+      <li><a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg> Earnings</a></li>
+      <li><a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> My Profile</a></li>
+      <li><a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> Settings</a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="courier-profile">
+        <div class="courier-avatar">AK</div>
+        <div class="courier-info">
+          <div class="courier-name">Aziz Kamolov</div>
+          <div class="courier-role">Courier · Active</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- TAB: AVAILABLE ORDERS -->
+    <div id="tab-available">
+      <div class="page-header fade-in">
+        <div>
+          <div class="page-eyebrow"><div class="page-eyebrow-line"></div><span>Live Feed</span></div>
+          <h1 class="page-title">Available <em>Orders</em></h1>
+          <p class="page-subtitle">7 orders waiting near your location · Updated just now</p>
+        </div>
+        <div class="status-toggle">
+          <span class="status-toggle-label">Status</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="statusToggle" checked onchange="toggleStatus(this)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+          <span class="status-val" id="statusVal">Online</span>
+        </div>
+      </div>
+
+      <div class="stats-row fade-in delay-1">
+        <div class="stat-card"><div class="stat-label">Today's Deliveries</div><div class="stat-num"><span>4</span></div><div class="stat-change up">↑ 2 from yesterday</div></div>
+        <div class="stat-card"><div class="stat-label">Today's Earnings</div><div class="stat-num"><span>182</span><span style="font-size:1.2rem;color:rgba(255,255,255,0.3)">,000</span></div><div class="stat-change up">↑ UZS 47,000 from avg</div></div>
+        <div class="stat-card"><div class="stat-label">Avg. Rating</div><div class="stat-num"><span>4</span><span style="font-size:1.4rem">.9</span></div><div class="stat-change">Based on 142 reviews</div></div>
+        <div class="stat-card"><div class="stat-label">Completion Rate</div><div class="stat-num"><span>98</span><span style="font-size:1.4rem">%</span></div><div class="stat-change up">Top 5% this week</div></div>
+      </div>
+
+      <div class="section-head fade-in delay-2">
+        <div class="section-head-left"><div class="section-head-line"></div><h2>Nearby <em>Orders</em></h2></div>
+        <div class="section-filter">
+          <button class="filter-btn active" onclick="filterOrders(this, 'all')">All</button>
+          <button class="filter-btn" onclick="filterOrders(this, 'express')">Express</button>
+          <button class="filter-btn" onclick="filterOrders(this, 'standard')">Standard</button>
+        </div>
+      </div>
+
+      <div class="orders-grid fade-in delay-3" id="ordersGrid">
+        <div class="order-card" data-type="express">
+          <div class="order-header"><div class="order-id">#PS-2847</div><div class="order-type express">Express</div></div>
+          <div class="order-route"><div class="order-route-line"><div class="route-dot from"></div><div class="route-connector"></div><div class="route-dot to"></div></div><div class="order-route-info"><div class="route-location"><div class="route-label">Pickup</div><div class="route-addr">12 Amir Temur Ave</div><div class="route-district">Mirzo Ulugbek · 0.8km away</div></div><div class="route-location" style="margin-top:0.5rem"><div class="route-label">Deliver to</div><div class="route-addr">Yunusobod, Block 4, Apt 31</div><div class="route-district">Yunusobod · 4.1km total</div></div></div></div>
+          <div class="order-meta"><div class="meta-item"><div class="meta-label">Weight</div><div class="meta-val">3.2 kg</div></div><div class="meta-item"><div class="meta-label">Earn</div><div class="meta-val"><strong>UZS 35,000</strong></div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-val">2h 10m</div></div><div class="meta-item"><div class="meta-label">Customer</div><div class="meta-val">A. Karimov</div></div></div>
+          <div class="order-actions"><button class="btn-take" onclick="takeOrder(this, '#PS-2847', 'express', '12 Amir Temur Ave, Tashkent', 'Yunusobod, Block 4, Apt 31', '3.2 kg', '4.1 km', 'A. Karimov', 'UZS 35,000')"><span>Accept Order</span></button><button class="btn-details" onclick="showDetails('#PS-2847', 'Express', '12 Amir Temur Ave', 'Yunusobod, Block 4, Apt 31', '3.2 kg', '4.1 km', 'A. Karimov', 'UZS 35,000')">Details</button></div>
+        </div>
+        <div class="order-card" data-type="standard">
+          <div class="order-header"><div class="order-id">#PS-2851</div><div class="order-type standard">Standard</div></div>
+          <div class="order-route"><div class="order-route-line"><div class="route-dot from"></div><div class="route-connector"></div><div class="route-dot to"></div></div><div class="order-route-info"><div class="route-location"><div class="route-label">Pickup</div><div class="route-addr">Chorsu Bazaar Area</div><div class="route-district">Old Town · 1.3km away</div></div><div class="route-location" style="margin-top:0.5rem"><div class="route-label">Deliver to</div><div class="route-addr">Chilonzor, Block 11</div><div class="route-district">Chilonzor · 6.7km total</div></div></div></div>
+          <div class="order-meta"><div class="meta-item"><div class="meta-label">Weight</div><div class="meta-val">1.5 kg</div></div><div class="meta-item"><div class="meta-label">Earn</div><div class="meta-val"><strong>UZS 22,000</strong></div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-val">Tomorrow</div></div><div class="meta-item"><div class="meta-label">Customer</div><div class="meta-val">M. Toshmatov</div></div></div>
+          <div class="order-actions"><button class="btn-take" onclick="takeOrder(this, '#PS-2851', 'standard', 'Chorsu Bazaar Area', 'Chilonzor, Block 11', '1.5 kg', '6.7 km', 'M. Toshmatov', 'UZS 22,000')"><span>Accept Order</span></button><button class="btn-details" onclick="showDetails('#PS-2851', 'Standard', 'Chorsu Bazaar Area', 'Chilonzor, Block 11', '1.5 kg', '6.7 km', 'M. Toshmatov', 'UZS 22,000')">Details</button></div>
+        </div>
+        <div class="order-card" data-type="express">
+          <div class="order-header"><div class="order-id">#PS-2854</div><div class="order-type fragile">Fragile</div></div>
+          <div class="order-route"><div class="order-route-line"><div class="route-dot from"></div><div class="route-connector"></div><div class="route-dot to"></div></div><div class="order-route-info"><div class="route-location"><div class="route-label">Pickup</div><div class="route-addr">Sayilgoh Street, Office 3</div><div class="route-district">Shaykhantakhur · 2.1km</div></div><div class="route-location" style="margin-top:0.5rem"><div class="route-label">Deliver to</div><div class="route-addr">Sergeli, 15th Block, Apt 7</div><div class="route-district">Sergeli · 9.3km total</div></div></div></div>
+          <div class="order-meta"><div class="meta-item"><div class="meta-label">Weight</div><div class="meta-val">0.8 kg</div></div><div class="meta-item"><div class="meta-label">Earn</div><div class="meta-val"><strong>UZS 48,000</strong></div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-val">3h 45m</div></div><div class="meta-item"><div class="meta-label">Customer</div><div class="meta-val">Z. Nazarov</div></div></div>
+          <div class="order-actions"><button class="btn-take" onclick="takeOrder(this, '#PS-2854', 'fragile', 'Sayilgoh Street, Office 3', 'Sergeli, 15th Block, Apt 7', '0.8 kg', '9.3 km', 'Z. Nazarov', 'UZS 48,000')"><span>Accept Order</span></button><button class="btn-details" onclick="showDetails('#PS-2854', 'Fragile', 'Sayilgoh Street, Office 3', 'Sergeli, 15th Block, Apt 7', '0.8 kg', '9.3 km', 'Z. Nazarov', 'UZS 48,000')">Details</button></div>
+        </div>
+        <div class="order-card" data-type="standard">
+          <div class="order-header"><div class="order-id">#PS-2858</div><div class="order-type standard">Standard</div></div>
+          <div class="order-route"><div class="order-route-line"><div class="route-dot from"></div><div class="route-connector"></div><div class="route-dot to"></div></div><div class="order-route-info"><div class="route-location"><div class="route-label">Pickup</div><div class="route-addr">Navoi Avenue Warehouse</div><div class="route-district">Almazar · 0.5km away</div></div><div class="route-location" style="margin-top:0.5rem"><div class="route-label">Deliver to</div><div class="route-addr">Uchtepa District, Apt 12</div><div class="route-district">Uchtepa · 5.2km total</div></div></div></div>
+          <div class="order-meta"><div class="meta-item"><div class="meta-label">Weight</div><div class="meta-val">4.1 kg</div></div><div class="meta-item"><div class="meta-label">Earn</div><div class="meta-val"><strong>UZS 28,000</strong></div></div><div class="meta-item"><div class="meta-label">Deadline</div><div class="meta-val">Tomorrow</div></div><div class="meta-item"><div class="meta-label">Customer</div><div class="meta-val">F. Ergashev</div></div></div>
+          <div class="order-actions"><button class="btn-take" onclick="takeOrder(this, '#PS-2858', 'standard', 'Navoi Avenue Warehouse', 'Uchtepa District, Apt 12', '4.1 kg', '5.2 km', 'F. Ergashev', 'UZS 28,000')"><span>Accept Order</span></button><button class="btn-details" onclick="showDetails('#PS-2858', 'Standard', 'Navoi Avenue Warehouse', 'Uchtepa District, Apt 12', '4.1 kg', '5.2 km', 'F. Ergashev', 'UZS 28,000')">Details</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ACTIVE DELIVERY -->
+    <div id="tab-active" style="display:none">
+      <div class="page-header fade-in"><div><div class="page-eyebrow"><div class="page-eyebrow-line"></div><span>In Progress</span></div><h1 class="page-title">Active <em>Delivery</em></h1><p class="page-subtitle">You have 1 order currently in progress</p></div></div>
+      <div class="active-delivery fade-in delay-1">
+        <div class="active-delivery-header"><div class="active-label"><div class="active-dot"></div>Currently Delivering</div></div>
+        <div class="active-delivery-grid">
+          <div class="active-order-info"><div class="active-order-id">#PS-<span>2831</span></div><div class="active-customer">Customer: Dilshod Yusupov · Express</div><div class="active-route"><div class="active-route-item"><div class="active-route-icon done">✓</div><div class="active-route-text"><div class="active-route-label">Picked Up From</div><div class="active-route-addr">Beruniy Street, Warehouse B</div></div></div><div class="active-route-item"><div class="active-route-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.7)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="active-route-text"><div class="active-route-label">Delivering To</div><div class="active-route-addr">Chilonzor, Block 11, Apt 5</div></div></div></div></div>
+          <div class="delivery-progress"><div class="progress-steps"><div class="progress-step done"><div class="progress-step-dot">✓</div><div class="progress-step-info"><div class="progress-step-title">Order Accepted</div><div class="progress-step-time">14:22 today</div></div></div><div class="progress-step done"><div class="progress-step-dot">✓</div><div class="progress-step-info"><div class="progress-step-title">Parcel Picked Up</div><div class="progress-step-time">14:48 today</div></div></div><div class="progress-step current"><div class="progress-step-dot">→</div><div class="progress-step-info"><div class="progress-step-title">En Route to Recipient</div><div class="progress-step-time">Now · ~18 min remaining</div></div></div><div class="progress-step pending"><div class="progress-step-dot">4</div><div class="progress-step-info"><div class="progress-step-title">Delivered</div><div class="progress-step-time">Pending</div></div></div></div></div>
+          <div class="active-actions"><div class="active-actions-title">Actions</div><button class="btn-delivered" onclick="openModal('modalDeliver')"><span>✓ Mark as Delivered</span></button><button class="btn-issue">⚠ Report Issue</button><button class="btn-contact">📞 Contact Customer</button></div>
+        </div>
+      </div>
+      <div id="noActiveDelivery" style="display:none"><div class="empty-state fade-in delay-2"><div class="empty-icon">📦</div><div class="empty-title">No active delivery</div><div class="empty-sub">Accept an order from the Available Orders tab to start delivering.</div></div></div>
+    </div>
+
+    <!-- TAB: HISTORY -->
+    <div id="tab-history" style="display:none">
+      <div class="page-header fade-in"><div><div class="page-eyebrow"><div class="page-eyebrow-line"></div><span>Records</span></div><h1 class="page-title">Delivery <em>History</em></h1><p class="page-subtitle">All your completed and past deliveries</p></div></div>
+      <div class="stats-row fade-in delay-1"><div class="stat-card"><div class="stat-label">Total Delivered</div><div class="stat-num"><span>142</span></div><div class="stat-change up">Since joining</div></div><div class="stat-card"><div class="stat-label">This Month</div><div class="stat-num"><span>38</span></div><div class="stat-change up">↑ 12 vs last month</div></div><div class="stat-card"><div class="stat-label">Total Earnings</div><div class="stat-num"><span>5.2</span><span style="font-size:1.2rem">M</span></div><div class="stat-change">UZS all time</div></div><div class="stat-card"><div class="stat-label">Satisfaction</div><div class="stat-num"><span>4</span><span style="font-size:1.4rem">.9</span></div><div class="stat-change up">★ Excellent courier</div></div></div>
+      <div class="section-head fade-in delay-2"><div class="section-head-left"><div class="section-head-line"></div><h2>Past <em>Deliveries</em></h2></div></div>
+      <table class="history-table fade-in delay-3"><thead><tr><th>Order ID</th><th>Route</th><th>Type</th><th>Date</th><th>Earned</th><th>Status</th></tr></thead><tbody><tr><td><span class="td-id">#PS-2820</span></td><td>Mirzo Ulugbek → Yunusobod</td><td>Express</td><td>Apr 25, 2026</td><td style="color:var(--gold)">UZS 52,000</td><td><span class="status-pill delivered">Delivered</span></td></tr><tr><td><span class="td-id">#PS-2815</span></td><td>Chorsu → Chilonzor</td><td>Standard</td><td>Apr 25, 2026</td><td style="color:var(--gold)">UZS 22,000</td><td><span class="status-pill delivered">Delivered</span></td></tr><tr><td><span class="td-id">#PS-2808</span></td><td>Navoi Ave → Sergeli</td><td>Fragile</td><td>Apr 24, 2026</td><td style="color:var(--gold)">UZS 48,000</td><td><span class="status-pill delivered">Delivered</span></td></tr><tr><td><span class="td-id">#PS-2798</span></td><td>Beruniy → Uchtepa</td><td>Standard</td><td>Apr 24, 2026</td><td style="color:rgba(255,255,255,0.3)">—</td><td><span class="status-pill cancelled">Cancelled</span></td></tr><tr><td><span class="td-id">#PS-2791</span></td><td>Old Town → Almazar</td><td>Express</td><td>Apr 23, 2026</td><td style="color:var(--gold)">UZS 35,000</td><td><span class="status-pill delivered">Delivered</span></td></tr><tr><td><span class="td-id">#PS-2782</span></td><td>Shaykhantakhur → Yakkasaray</td><td>Standard</td><td>Apr 23, 2026</td><td style="color:var(--gold)">UZS 18,000</td><td><span class="status-pill delivered">Delivered</span></td></tr><tr><td><span class="td-id">#PS-2775</span></td><td>Amir Temur Ave → Sergeli</td><td>Express</td><td>Apr 22, 2026</td><td style="color:var(--gold)">UZS 44,000</td><td><span class="status-pill delivered">Delivered</span></td></tr></tbody></table>
+    </div>
+  </main>
+</div>
+
+<script src="/static/js/courier-dashboard.js"></script>
+</body>
+</html>

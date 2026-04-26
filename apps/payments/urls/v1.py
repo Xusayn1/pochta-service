@@ -1,17 +1,10 @@
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 
-from apps.payments.views.v1 import InvoiceViewSet, PaymentWebhookView, TransactionViewSet
+from apps.payments.views.v1 import PaymentCreateView, PaymentStatusView
 
-
-app_name = "v1"
-
-router = DefaultRouter()
-router.register("transactions", TransactionViewSet, basename="transactions")
-router.register("invoices", InvoiceViewSet, basename="invoices")
+app_name = 'v1'
 
 urlpatterns = [
-    path("", include(router.urls)),
-    path("webhook/click/", PaymentWebhookView.as_view(), {"gateway_name": "click"}, name="click-webhook"),
-    path("webhook/payme/", PaymentWebhookView.as_view(), {"gateway_name": "payme"}, name="payme-webhook"),
+    path('create/', PaymentCreateView.as_view(), name='payment-create'),
+    path('<str:order_number>/status/', PaymentStatusView.as_view(), name='payment-status'),
 ]

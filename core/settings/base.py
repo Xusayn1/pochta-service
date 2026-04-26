@@ -33,6 +33,7 @@ THIRD_PARTY_APPS = [
     'drf_spectacular',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
 ]
 
 MY_APPS = [
@@ -40,8 +41,11 @@ MY_APPS = [
     'apps.users',
     'apps.locations',
     'apps.orders',
+    'apps.shipments',
+    'apps.tracking',
     'apps.payments',
     'apps.notifications',
+    'apps.reports',
 ]
 
 INSTALLED_APPS += THIRD_PARTY_APPS
@@ -54,6 +58,7 @@ INSTALLED_APPS += MY_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -79,7 +84,7 @@ ASGI_APPLICATION = 'core.asgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR.parent / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,6 +131,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.parent.parent / 'static'
+STATICFILES_DIRS = [BASE_DIR.parent / 'static']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.parent.parent / 'media'
@@ -162,7 +168,7 @@ REST_FRAMEWORK = {
     # ],
     'PAGE_SIZE': 20,
     'EXCEPTION_HANDLER': 'apps.shared.exceptions.handler.custom_exception_handler',
-    'DEFAULT_PAGINATION_CLASS': 'apps.shared.utils.custom_paginations.CustomPageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'apps.shared.pagination.StandardPagination',
 }
 
 # -------------------------------------------------------------------
@@ -185,4 +191,12 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# -------------------------------------------------------------------
+# CORS CONFIG
+# -------------------------------------------------------------------
+
+CORS_ALLOW_ALL_ORIGINS = True  # Dev only — tighten in production

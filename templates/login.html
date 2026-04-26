@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Pochta-Service</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body class="auth-page">
+  <nav id="navbar" class="scrolled">
+    <a href="/" class="nav-logo">Pochta<span>·</span>Service</a>
+    <ul class="nav-links">
+      <li><a href="/#services">Services</a></li>
+      <li><a href="/#track">Track</a></li>
+      <li><a href="/#coverage">Coverage</a></li>
+      <li><a href="/#pricing">Pricing</a></li>
+      <li><a href="/#contact">Contact</a></li>
+      <li class="guest-only-link"><a href="/register">Register</a></li>
+      <li class="guest-only-link"><a href="/login">Login</a></li>
+      <li class="auth-only-link" style="display:none;"><a href="#" id="logoutLink">Logout</a></li>
+    </ul>
+    <a href="/#contact" class="nav-cta">Get Started</a>
+  </nav>
+
+  <main class="auth-main">
+    <section class="auth-card">
+      <h1>Welcome Back</h1>
+      <p>Login using your username, email, or phone number.</p>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="identifier">Username / Email / Phone</label>
+          <input id="identifier" name="identifier" type="text" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required />
+        </div>
+        <button class="btn-track" type="submit">Login</button>
+      </form>
+
+      <div id="formError" class="auth-feedback auth-error"></div>
+      <div class="auth-link-row">
+        Don't have an account? <a href="/register">Register</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="auth-footer">
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 Pochta-Service. All rights reserved.</div>
+      <div class="footer-legal">
+        <a href="/">Home</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/auth.js" defer></script>
+</body>
+</html>

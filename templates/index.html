@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -17,13 +17,16 @@
 
   <!-- NAVBAR -->
   <nav id="navbar">
-    <a href="#" class="nav-logo">Pochta<span>В·</span>Service</a>
+    <a href="/" class="nav-logo">Pochta<span>В·</span>Service</a>
     <ul class="nav-links">
       <li><a href="#services">Services</a></li>
       <li><a href="#track">Track</a></li>
       <li><a href="#coverage">Coverage</a></li>
       <li><a href="#pricing">Pricing</a></li>
       <li><a href="#contact">Contact</a></li>
+      <li class="guest-only-link"><a href="/register">Register</a></li>
+      <li class="guest-only-link"><a href="/login">Login</a></li>
+      <li class="auth-only-link" style="display:none;"><a href="#" id="logoutLink">Logout</a></li>
     </ul>
     <a href="#contact" class="nav-cta">Get Started</a>
   </nav>
@@ -625,7 +628,276 @@
     </div>
   </footer>
 
+  <div id="authModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:1000; align-items:center; justify-content:center; padding:16px;">
+    <div style="width:100%; max-width:420px; background:#121212; border:1px solid #2a2a2a; border-radius:10px; padding:20px; color:#f1f1f1;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <strong>Authentication Required</strong>
+        <button id="authModalClose" style="background:none; color:#999; border:0; font-size:20px; cursor:pointer;">×</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button id="authTabLogin" style="flex:1; padding:10px; border:1px solid #333; background:#1b1b1b; color:#fff; cursor:pointer;">Login</button>
+        <button id="authTabRegister" style="flex:1; padding:10px; border:1px solid #333; background:#1b1b1b; color:#fff; cursor:pointer;">Register</button>
+      </div>
+      <div id="authLoginPanel">
+        <input id="authLoginPhone" type="tel" placeholder="+998901234567" style="width:100%; margin-bottom:10px; padding:12px; border:1px solid #333; border-radius:6px; background:#0d0d0d; color:#fff;">
+        <input id="authLoginPassword" type="password" placeholder="Password" style="width:100%; margin-bottom:12px; padding:12px; border:1px solid #333; border-radius:6px; background:#0d0d0d; color:#fff;">
+        <button id="authLoginSubmit" style="width:100%; padding:12px; background:#c9a84c; border:none; border-radius:6px; cursor:pointer;">Login</button>
+      </div>
+      <div id="authRegisterPanel" style="display:none;">
+        <input id="authRegPhone" type="tel" placeholder="+998901234567" style="width:100%; margin-bottom:10px; padding:12px; border:1px solid #333; border-radius:6px; background:#0d0d0d; color:#fff;">
+        <input id="authRegPassword" type="password" placeholder="Password" style="width:100%; margin-bottom:10px; padding:12px; border:1px solid #333; border-radius:6px; background:#0d0d0d; color:#fff;">
+        <select id="authRegRole" style="width:100%; margin-bottom:12px; padding:12px; border:1px solid #333; border-radius:6px; background:#0d0d0d; color:#fff;">
+          <option value="user">User</option>
+          <option value="courier">Courier</option>
+          <option value="manager">Manager</option>
+        </select>
+        <button id="authRegisterSubmit" style="width:100%; padding:12px; background:#c9a84c; border:none; border-radius:6px; cursor:pointer;">Register</button>
+      </div>
+      <div id="authModalMessage" style="margin-top:12px; color:#d8d8d8; font-size:14px;"></div>
+    </div>
+  </div>
+
   <script src="../static/js/script.js" defer></script>
+
+  <script>
+    const API = '';  // same origin — Django serves the HTML
+
+    function getAccessToken() {
+      return localStorage.getItem('access_token');
+    }
+
+    function getFriendlyErrorMessage(data, fallback = 'Request failed') {
+      if (!data) return fallback;
+      if (typeof data.detail === 'string' && data.detail) return data.detail;
+      if (typeof data.message === 'string' && data.message) return data.message;
+      if (typeof data.error === 'string' && data.error) return data.error;
+      return fallback;
+    }
+
+    function normalizeServiceType(serviceType) {
+      if (serviceType === 'premium') {
+        return 'express';
+      }
+
+      return serviceType || 'standard';
+    }
+
+    // --- TRACKING FORM ---
+    document.querySelector('.btn-track').addEventListener('click', async () => {
+      const btn = document.querySelector('.btn-track');
+      const numInput = document.querySelector('input[placeholder*="PS-"]');
+      const phoneInput = document.querySelector('input[type="tel"]');
+      
+      const num = numInput ? numInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      
+      if (!num) return alert('Please enter a tracking number');
+      
+      const originalBtnText = btn.textContent;
+      btn.textContent = 'Loading...';
+      btn.disabled = true;
+
+      try {
+        // Construct API URL with query parameters
+        const url = new URL(`${window.location.origin}/api/track`);
+        url.searchParams.append('tracking_number', num);
+        if (phone) url.searchParams.append('phone', phone);
+
+        const res = await fetch(url.toString());
+        const data = await res.json();
+        
+        if (!res.ok) { 
+          alert(data.error || 'Tracking number not found'); 
+          return; 
+        }
+        
+        // Highlight the active step based on status string matching
+        const statusMap = {
+          'Order Confirmed': 1, 
+          'Picked Up': 2,
+          'In Transit': 3, 
+          'Out for Delivery': 4, 
+          'Delivered': 5
+        };
+        const step = statusMap[data.status] || 1;
+        document.querySelectorAll('.track-step-dot').forEach((dot, i) => {
+          dot.classList.toggle('active', i < step);
+        });
+        
+        // Update the display text
+        let historyHtml = '';
+        if (data.history && data.history.length > 0) {
+           historyHtml = `<br><small style="opacity:0.8;">Last update: ${data.history[data.history.length-1].step} - ${data.history[data.history.length-1].date}</small>`;
+        }
+
+        const infoParagraph = document.querySelector('.track-form p');
+        infoParagraph.innerHTML = `📦 <strong>${data.tracking_number}</strong> — ${data.status.toUpperCase()} | ETA: ${data.eta}${historyHtml}`;
+        
+      } catch(e) {
+        alert('Server error. Please try again.');
+        console.error(e);
+      } finally {
+        btn.textContent = originalBtnText;
+        btn.disabled = false;
+      }
+    });
+
+    let onAuthSuccess = null;
+
+    function setAuthMode(mode) {
+      document.querySelector('#authLoginPanel').style.display = mode === 'login' ? 'block' : 'none';
+      document.querySelector('#authRegisterPanel').style.display = mode === 'register' ? 'block' : 'none';
+      document.querySelector('#authModalMessage').textContent = '';
+    }
+
+    function openAuthModal(callback) {
+      onAuthSuccess = callback;
+      document.querySelector('#authModal').style.display = 'flex';
+      setAuthMode('login');
+    }
+
+    function closeAuthModal() {
+      document.querySelector('#authModal').style.display = 'none';
+    }
+
+    async function authRequest(url, payload) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      return { res, data };
+    }
+
+    async function handleLoginFromModal() {
+      const phone = document.querySelector('#authLoginPhone').value.trim();
+      const password = document.querySelector('#authLoginPassword').value.trim();
+      const msg = document.querySelector('#authModalMessage');
+      if (!phone || !password) {
+        msg.textContent = 'Phone and password are required.';
+        return;
+      }
+      const { res, data } = await authRequest('/api/v1/users/login/', { phone, password });
+      if (!res.ok) {
+        msg.textContent = getFriendlyErrorMessage(data, 'Login failed');
+        return;
+      }
+      localStorage.setItem('access_token', data.access || data.tokens?.access || '');
+      localStorage.setItem('refresh_token', data.refresh || data.tokens?.refresh || '');
+      closeAuthModal();
+      if (typeof onAuthSuccess === 'function') onAuthSuccess();
+    }
+
+    async function handleRegisterFromModal() {
+      const phone = document.querySelector('#authRegPhone').value.trim();
+      const password = document.querySelector('#authRegPassword').value.trim();
+      const role = document.querySelector('#authRegRole').value;
+      const msg = document.querySelector('#authModalMessage');
+      if (!phone || !password) {
+        msg.textContent = 'Phone and password are required.';
+        return;
+      }
+      const { res, data } = await authRequest('/api/v1/users/register/', { phone, password, role });
+      if (!res.ok) {
+        msg.textContent = getFriendlyErrorMessage(data, 'Registration failed');
+        return;
+      }
+      localStorage.setItem('access_token', data.access || data.tokens?.access || '');
+      localStorage.setItem('refresh_token', data.refresh || data.tokens?.refresh || '');
+      closeAuthModal();
+      if (typeof onAuthSuccess === 'function') onAuthSuccess();
+    }
+
+    document.querySelector('#authTabLogin').addEventListener('click', () => setAuthMode('login'));
+    document.querySelector('#authTabRegister').addEventListener('click', () => setAuthMode('register'));
+    document.querySelector('#authModalClose').addEventListener('click', closeAuthModal);
+    document.querySelector('#authLoginSubmit').addEventListener('click', handleLoginFromModal);
+    document.querySelector('#authRegisterSubmit').addEventListener('click', handleRegisterFromModal);
+
+    async function submitContactMessage(payload) {
+      const token = getAccessToken();
+      const res = await fetch('/api/v1/notifications/contact/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(getFriendlyErrorMessage(data, 'Unable to send message'));
+      }
+    }
+
+    // --- CONTACT FORM ---
+    document.querySelector('.btn-send').addEventListener('click', async () => {
+      const fields = document.querySelectorAll('.contact-form input, .contact-form select, .contact-form textarea');
+      const values = [...fields].map(f => f.value.trim());
+      const [name, email, phone] = values;
+      if (!name || !email || !phone) { alert('Please fill in all required fields'); return; }
+      const payload = {
+        full_name: values[0],
+        email: values[1],
+        phone: values[2],
+        service_type: values[3],
+        message: values[4],
+      };
+
+      const accessToken = getAccessToken();
+      if (!accessToken) {
+        window.location.href = '/login?next=/#contact';
+        return;
+      }
+
+      try {
+        await submitContactMessage(payload);
+        alert('Message sent successfully.');
+      } catch (error) {
+        alert(error.message || 'Message failed to send.');
+      }
+    });
+
+    function updateAuthNavbarState() {
+      const isAuthenticated = !!localStorage.getItem('access_token');
+      document.querySelectorAll('.guest-only-link').forEach((el) => {
+        el.style.display = isAuthenticated ? 'none' : 'list-item';
+      });
+      document.querySelectorAll('.auth-only-link').forEach((el) => {
+        el.style.display = isAuthenticated ? 'list-item' : 'none';
+      });
+    }
+
+    async function logout() {
+      const refresh = localStorage.getItem('refresh_token');
+      const access = localStorage.getItem('access_token');
+      try {
+        await fetch('/api/logout/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(access ? { Authorization: `Bearer ${access}` } : {}),
+          },
+          body: JSON.stringify({ refresh }),
+        });
+      } catch (error) {
+        console.warn('Logout request failed', error);
+      } finally {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        updateAuthNavbarState();
+        window.location.href = '/';
+      }
+    }
+
+    document.querySelector('#logoutLink')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      logout();
+    });
+
+    updateAuthNavbarState();
+  </script>
 </body>
 </html>
 
