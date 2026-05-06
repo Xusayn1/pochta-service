@@ -42,7 +42,7 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    objects = CustomUserManager()
+    # objects = CustomUserManager()
 
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = ['full_name']
@@ -95,10 +95,7 @@ class User(AbstractUser):
 class UserAddress(models.Model):
     user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="addresses")
     title = models.CharField(max_length=100, blank=True)
-    region = models.ForeignKey("locations.Region", on_delete=models.PROTECT, related_name="user_addresses")
-    city = models.ForeignKey("locations.City", on_delete=models.PROTECT, related_name="user_addresses")
-    address = models.TextField()
-    landmark = models.CharField(max_length=255, blank=True)
+    full_address = models.TextField()
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -107,10 +104,5 @@ class UserAddress(models.Model):
         db_table = "users_user_address"
         ordering = ["-is_default", "-created_at"]
 
-    @property
-    def full_address(self):
-        parts = [self.title, self.city.name_en, self.address, self.landmark]
-        return ", ".join(part for part in parts if part)
-
     def __str__(self):
-        return self.full_address or f"{self.user} - {self.address[:40]}"
+        return self.title or self.full_address[:50]

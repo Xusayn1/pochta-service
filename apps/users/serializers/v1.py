@@ -1,83 +1,113 @@
-import re
 from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from apps.users.models import UserAddress
+from apps.users.models import PHONE_REGEX, UserAddress
 
-PHONE_REGEX = re.compile(r"^\+998\d{9}$")
 User = get_user_model()
+
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
-    confirm_password = serializers.CharField(write_only=True, min_length=6, required=False)
-    username = serializers.CharField(required=False)
+    confirm_password = serializers.CharField(write_only=True, min_length=6)
     phone = serializers.CharField(required=False, allow_blank=True)
+
     role = serializers.ChoiceField(
-        choices=[User.Roles.USER, User.Roles.COURIER, User.Roles.MANAGER, "customer"],
+        choices=[
+            User.Roles.USER,
+            User.Roles.COURIER,
+            User.Roles.MANAGER,
+        ],
         default=User.Roles.USER,
-        required=False,
     )
 
     class Meta:
         model = User
-        fields = ["username", "phone", "full_name", "email", "password", "confirm_password", "role"]
+        fields = [
+            "username",
+            "full_name",
+            "email",
+            "phone",
+            "password",
+            "confirm_password",
+            "role",
+        ]
 
     def validate(self, attrs):
-        attrs = super().validate(attrs)
         password = attrs.get("password")
         confirm_password = attrs.get("confirm_password")
 
-        if confirm_password is not None and password != confirm_password:
-            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
-
-        role = attrs.get("role", User.Roles.USER)
-        if role == "customer":
-            attrs["role"] = User.Roles.USER
+        if password != confirm_password:
+            raise serializers.ValidationError({
+                "confirm_password": "Passwords do not match."
+            })
 
         return attrs
 
     def validate_phone(self, value):
-        if not PHONE_REGEX.match(value):
-            raise serializers.ValidationError("Phone number must be in Uzbekistan format: +998XXXXXXXXX.")
-        if User.objects.filter(phone=value).exists():
-            raise serializers.ValidationError("A user with this phone number already exists.")
+        if value:
+            if not PHONE_REGEX.match(value):
+                raise serializers.ValidationError(
+                    "Phone number must be in Uzbekistan format: +998XXXXXXXXX."
+                )
+
+            if User.objects.filter(phone=value).exists():
+                raise serializers.ValidationError(
+                    "A user with this phone number already exists."
+                )
+
         return value
 
     def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError("A user with this username already exists.")
+        if value and User.objects.filter(username=value).exists():
+            raise serializers.ValidationError(
+                "A user with this username already exists."
+            )
+
+        return value
+
+    def validate_email(self, value):
+        if value and User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError(
+                "A user with this email already exists."
+            )
+
         return value
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
-        validated_data.pop("confirm_password", None)
+        validated_data.pop("confirm_password")
 
-        username = validated_data.pop("username", None)
+        password = validated_data.pop("password")
+
+        username = validated_data.get("username")
         email = validated_data.get("email")
         phone = validated_data.get("phone")
 
+        # username auto generate
         if not username and email:
             username = email.split("@")[0]
-        if not username:
-            raise serializers.ValidationError({"username": "Username is required."})
 
+        if not username:
+            username = f"user_{uuid4().hex[:8]}"
+
+        # phone auto generate
         if not phone:
             for _ in range(10):
                 generated_phone = f"+998{uuid4().int % 1_000_000_000:09d}"
+
                 if not User.objects.filter(phone=generated_phone).exists():
                     phone = generated_phone
                     break
-            if not phone:
-                raise serializers.ValidationError({"phone": "Unable to generate a unique phone number."})
 
-        validated_data["phone"] = phone
         validated_data["username"] = username
-        validated_data["role"] = User.normalize_role(validated_data.get("role", User.Roles.USER))
-        user = User(**validated_data)
-        user.set_password(password)
-        user.save()
+        validated_data["phone"] = phone
+
+        user = User.objects.create_user(
+            password=password,
+            **validated_data
+        )
+
         return user
 
 
@@ -93,9 +123,9 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Phone number must be in Uzbekistan format: +998XXXXXXXXX.")
         return value
 
-    def validate(self, data):
-        identifier = data.get('identifier') or data.get('username') or data.get('email') or data.get('phone')
-        password = data.get('password')
+    def validate(self, attrs):
+        identifier = attrs.get('identifier') or attrs.get('username') or attrs.get('email') or attrs.get('phone')
+        password = attrs.get('password')
 
         if not identifier:
             raise serializers.ValidationError("Username, email, or phone is required.")
@@ -111,92 +141,69 @@ class UserLoginSerializer(serializers.Serializer):
         if not user.check_password(password):
             raise serializers.ValidationError("Invalid credentials.")
 
-        data['user'] = user
-        return data
+        attrs["user"] = user
+        return attrs
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "phone", "full_name", "email", "role", "is_verified", "created_at"]
-        read_only_fields = ["id", "phone", "role", "is_verified", "created_at"]
+        fields = [
+            "id",
+            "username",
+            "phone",
+            "full_name",
+            "email",
+            "role",
+            "is_verified",
+            "created_at",
+        ]
+        read_only_fields = ["id", "username", "phone", "role", "is_verified", "created_at"]
 
 
 class UserAddressSerializer(serializers.ModelSerializer):
-    region_name = serializers.CharField(source="region.name_en", read_only=True)
-    city_name = serializers.CharField(source="city.name_en", read_only=True)
-    full_address = serializers.SerializerMethodField()
-
     class Meta:
         model = UserAddress
         fields = [
             "id",
-            "user",
             "title",
-            "region",
-            "region_name",
-            "city",
-            "city_name",
-            "address",
-            "landmark",
-            "is_default",
             "full_address",
+            "is_default",
             "created_at",
             "updated_at",
         ]
         read_only_fields = [
             "id",
-            "user",
-            "region_name",
-            "city_name",
-            "full_address",
             "created_at",
             "updated_at",
         ]
 
-    def get_full_address(self, obj):
-        parts = [obj.title, obj.city.name_en, obj.address, obj.landmark]
-        return ", ".join(part for part in parts if part)
-
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        region = attrs.get("region") or getattr(self.instance, "region", None)
-        city = attrs.get("city") or getattr(self.instance, "city", None)
-
-        if region and city and city.region_id != region.id:
-            raise serializers.ValidationError({
-                "city": "Selected city does not belong to the selected region."
-            })
-
-        return attrs
-
-    def _sync_default_flag(self, user, make_default, current_instance=None):
-        if make_default:
-            queryset = UserAddress.objects.filter(user=user, is_default=True)
-            if current_instance is not None:
-                queryset = queryset.exclude(pk=current_instance.pk)
-            queryset.update(is_default=False)
-        elif not UserAddress.objects.filter(user=user).exclude(
-            pk=getattr(current_instance, "pk", None)
-        ).exists():
-            return True
-
-        return make_default
-
     def create(self, validated_data):
-        request = self.context["request"]
-        user = request.user
-        validated_data["is_default"] = self._sync_default_flag(
-            user=user,
-            make_default=validated_data.get("is_default", False),
-        )
-        return UserAddress.objects.create(user=user, **validated_data)
+        # User is passed by perform_create in the view
+        user = validated_data.pop("user", None) or self.context.get("request").user # type: ignore[index]
+        make_default = validated_data.get("is_default", False)
+        
+        # If no other addresses exist or this is marked as default, make it default
+        if make_default or not UserAddress.objects.filter(user=user).exists(): # type: ignore[attr-defined]
+            # Clear default flag on other addresses
+            UserAddress.objects.filter(user=user, is_default=True).update(is_default=False) # type: ignore[attr-defined]
+            validated_data["is_default"] = True
+        else:
+            validated_data["is_default"] = False
+        
+        return UserAddress.objects.create(user=user, **validated_data) # type: ignore[attr-defined]
 
     def update(self, instance, validated_data):
         user = instance.user
-        validated_data["is_default"] = self._sync_default_flag(
-            user=user,
-            make_default=validated_data.get("is_default", instance.is_default),
-            current_instance=instance,
-        )
-        return super().update(instance, validated_data)
+        make_default = validated_data.get("is_default", instance.is_default)
+        
+        if make_default and not instance.is_default:
+            # Clear default flag on other addresses
+            UserAddress.objects.filter(user=user, is_default=True).update(is_default=False) # type: ignore[attr-defined]
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        return instance
+

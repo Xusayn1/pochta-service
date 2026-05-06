@@ -61,11 +61,11 @@
       <div class="modal-sub">Confirm that you have successfully delivered this parcel to the recipient.</div>
       <div class="earnings-highlight">
         <div class="earnings-label">Your earnings for this delivery</div>
-        <div class="earnings-amount">UZS 52,000</div>
+        <div class="earnings-amount" id="deliver-earnings">UZS 0</div>
       </div>
-      <div class="modal-detail-row"><span class="modal-detail-label">Order</span><span class="modal-detail-val">#PS-2831</span></div>
-      <div class="modal-detail-row"><span class="modal-detail-label">Recipient</span><span class="modal-detail-val">D. Yusupov</span></div>
-      <div class="modal-detail-row"><span class="modal-detail-label">Address</span><span class="modal-detail-val">Chilonzor, Block 11, Apt 5</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Order</span><span class="modal-detail-val" id="deliver-order-id">-</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Recipient</span><span class="modal-detail-val" id="deliver-recipient">-</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Address</span><span class="modal-detail-val" id="deliver-address">-</span></div>
       <div class="modal-actions">
         <button class="modal-btn-primary" onclick="confirmDelivered()"><span>✓ Confirm Delivered</span></button>
         <button class="modal-btn-ghost" onclick="closeModal('modalDeliver')">Cancel</button>
@@ -94,21 +94,21 @@
       <p class="sidebar-section-label">Main</p>
       <ul class="sidebar-nav">
         <li>
-          <a href="#" class="active" onclick="showTab('available'); return false;">
+          <a href="#available" data-tab="available" class="active" onclick="showTab('available'); return false;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             Available Orders
             <span class="sidebar-badge new" id="badge-available">7</span>
           </a>
         </li>
         <li>
-          <a href="#" onclick="showTab('active'); return false;">
+          <a href="#active" data-tab="active" onclick="showTab('active'); return false;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
             Active Delivery
             <span class="sidebar-badge" id="badge-active">1</span>
           </a>
         </li>
         <li>
-          <a href="#" onclick="showTab('history'); return false;">
+          <a href="#history" data-tab="history" onclick="showTab('history'); return false;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v10l4 2"/><circle cx="12" cy="12" r="10"/></svg>
             Delivery History
           </a>
@@ -118,19 +118,19 @@
       <p class="sidebar-section-label">Account</p>
       <ul class="sidebar-nav">
         <li>
-          <a href="#">
+          <a href="#earnings" data-tab="earnings" onclick="showTab('earnings'); return false;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
             Earnings
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="#profile" data-tab="profile" onclick="showTab('profile'); return false;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             My Profile
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="#settings" data-tab="settings" onclick="showTab('settings'); return false;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
             Settings
           </a>
@@ -157,7 +157,7 @@
               <span>Live Feed</span>
             </div>
             <h1 class="page-title">Available <em>Orders</em></h1>
-            <p class="page-subtitle">7 orders waiting near your location · Updated just now</p>
+            <p class="page-subtitle" id="available-subtitle">Loading nearby orders...</p>
           </div>
           <div class="status-toggle">
             <span class="status-toggle-label">Status</span>
@@ -173,13 +173,13 @@
         <div class="stats-row fade-in delay-1">
           <div class="stat-card">
             <div class="stat-label">Today's Deliveries</div>
-            <div class="stat-num"><span>4</span></div>
-            <div class="stat-change up">↑ 2 from yesterday</div>
+            <div class="stat-num" id="summary-today-deliveries"><span>0</span></div>
+            <div class="stat-change up">Completed today</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Today's Earnings</div>
-            <div class="stat-num"><span>182</span><span style="font-size:1.2rem;color:rgba(255,255,255,0.3)">,000</span></div>
-            <div class="stat-change up">↑ UZS 47,000 from avg</div>
+            <div class="stat-num" id="summary-today-earnings"><span>0</span></div>
+            <div class="stat-change up">Today's courier income</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Avg. Rating</div>
@@ -188,8 +188,8 @@
           </div>
           <div class="stat-card">
             <div class="stat-label">Completion Rate</div>
-            <div class="stat-num"><span>98</span><span style="font-size:1.4rem">%</span></div>
-            <div class="stat-change up">Top 5% this week</div>
+            <div class="stat-num" id="summary-completion-rate"><span>100</span><span style="font-size:1.4rem">%</span></div>
+            <div class="stat-change up">Completion performance</div>
           </div>
         </div>
 
@@ -246,23 +246,23 @@
         <div class="stats-row fade-in delay-1">
           <div class="stat-card">
             <div class="stat-label">Total Delivered</div>
-            <div class="stat-num"><span>142</span></div>
-            <div class="stat-change up">Since joining</div>
+            <div class="stat-num" id="history-total-delivered"><span>0</span></div>
+            <div class="stat-change up">Delivered all time</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">This Month</div>
-            <div class="stat-num"><span>38</span></div>
-            <div class="stat-change up">↑ 12 vs last month</div>
+            <div class="stat-num" id="history-month-delivered"><span>0</span></div>
+            <div class="stat-change up">Delivered this month</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Total Earnings</div>
-            <div class="stat-num"><span>5.2</span><span style="font-size:1.2rem">M</span></div>
-            <div class="stat-change">UZS all time</div>
+            <div class="stat-num" id="history-total-earnings"><span>0</span></div>
+            <div class="stat-change">All delivered order earnings</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Satisfaction</div>
-            <div class="stat-num"><span>4</span><span style="font-size:1.4rem">.9</span></div>
-            <div class="stat-change up">★ Excellent courier</div>
+            <div class="stat-num" id="history-completion-rate"><span>100</span><span style="font-size:1.4rem">%</span></div>
+            <div class="stat-change up">Completed vs cancelled</div>
           </div>
         </div>
 
@@ -284,7 +284,7 @@
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="history-orders-tbody">
             <tr>
               <td><span class="td-id">#PS-2820</span></td>
               <td>Mirzo Ulugbek → Yunusobod</td>
@@ -344,10 +344,126 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Earnings Tab -->
+      <div id="tab-earnings" style="display:none">
+        <div class="page-header fade-in">
+          <div>
+            <div class="page-eyebrow"><div class="page-eyebrow-line"></div><span>Financials</span></div>
+            <h1 class="page-title">My <em>Earnings</em></h1>
+            <p class="page-subtitle">Track your income and payout history</p>
+          </div>
+        </div>
+        <div class="stats-row fade-in delay-1">
+          <div class="stat-card">
+            <div class="stat-label">This Month</div>
+            <div class="stat-num" id="earn-month">—</div>
+            <div class="stat-change">UZS total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Deliveries</div>
+            <div class="stat-num" id="earn-total-deliveries">—</div>
+            <div class="stat-change">All time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg per Delivery</div>
+            <div class="stat-num" id="earn-avg">—</div>
+            <div class="stat-change">UZS average</div>
+          </div>
+        </div>
+        <div class="section-head fade-in delay-2">
+          <div class="section-head-left">
+            <div class="section-head-line"></div>
+            <h2>Recent <em>Payouts</em></h2>
+          </div>
+        </div>
+        <table class="history-table fade-in delay-3">
+          <thead>
+            <tr><th>Order ID</th><th>Route</th><th>Type</th><th>Date</th><th>Earned</th><th>Status</th></tr>
+          </thead>
+          <tbody id="earnings-history-tbody">
+            <tr><td colspan="6" style="text-align:center;opacity:0.4;padding:2rem">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Profile Tab -->
+      <div id="tab-profile" style="display:none">
+        <div class="page-header fade-in">
+          <div>
+            <div class="page-eyebrow"><div class="page-eyebrow-line"></div><span>Account</span></div>
+            <h1 class="page-title">My <em>Profile</em></h1>
+            <p class="page-subtitle">View and update your personal information</p>
+          </div>
+        </div>
+        <div class="fade-in delay-1" style="max-width:520px;margin-top:2rem;">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:2rem;display:flex;flex-direction:column;gap:1.2rem;">
+            <div style="display:flex;align-items:center;gap:1.2rem;margin-bottom:0.5rem;">
+              <div style="width:64px;height:64px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:600;color:var(--gold)" id="profile-avatar-text">—</div>
+              <div>
+                <div style="font-size:1.1rem;font-weight:500;" id="profile-name-display">Loading...</div>
+                <div style="opacity:0.4;font-size:0.85rem;" id="profile-role-display">Courier · Active</div>
+              </div>
+            </div>
+            <div style="display:grid;gap:0.8rem;">
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <span style="opacity:0.5;font-size:0.9rem;">Phone</span>
+                <span id="profile-phone">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <span style="opacity:0.5;font-size:0.9rem;">Email</span>
+                <span id="profile-email">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <span style="opacity:0.5;font-size:0.9rem;">Username</span>
+                <span id="profile-username">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:0.75rem 0;">
+                <span style="opacity:0.5;font-size:0.9rem;">Role</span>
+                <span style="color:var(--gold)">Courier</span>
+              </div>
+            </div>
+            <button onclick="loadProfile()" style="align-self:flex-start;padding:0.6rem 1.4rem;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:var(--gold);border-radius:8px;cursor:pointer;font-size:0.9rem;">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="tab-settings" style="display:none">
+        <div class="page-header fade-in">
+          <div>
+            <div class="page-eyebrow"><div class="page-eyebrow-line"></div><span>Preferences</span></div>
+            <h1 class="page-title">My <em>Settings</em></h1>
+            <p class="page-subtitle">Manage your account and notification preferences</p>
+          </div>
+        </div>
+        <div class="fade-in delay-1" style="max-width:520px;margin-top:2rem;display:flex;flex-direction:column;gap:1rem;">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+            <h3 style="opacity:0.6;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;margin:0;">Notifications</h3>
+            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+              <span>New order alerts</span>
+              <input id="setting-new-order-alerts" type="checkbox" checked style="width:18px;height:18px;accent-color:var(--gold)">
+            </label>
+            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+              <span>Delivery reminders</span>
+              <input id="setting-delivery-reminders" type="checkbox" checked style="width:18px;height:18px;accent-color:var(--gold)">
+            </label>
+            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+              <span>Earnings summaries</span>
+              <input id="setting-earnings-summaries" type="checkbox" style="width:18px;height:18px;accent-color:var(--gold)">
+            </label>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+            <h3 style="opacity:0.6;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;margin:0;">Account</h3>
+            <button onclick="signOut()" style="padding:0.7rem 1.4rem;background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.3);color:#ff6b6b;border-radius:8px;cursor:pointer;text-align:left;">Sign Out</button>
+          </div>
+          <button onclick="saveSettings()" style="padding:0.7rem 1.6rem;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:var(--gold);border-radius:8px;cursor:pointer;align-self:flex-start;">Save Preferences</button>
+        </div>
+      </div>
     </main>
   </div>
 
-  <script src="{% static 'js/auth.js' %}" defer></script>
-  <script src="{% static 'js/courier_dashboard.js' %}"></script>
+  <script src="{% static 'js/auth.js' %}?v=20260501-2" defer></script>
+  <script src="{% static 'js/courier_dashboard.js' %}?v=20260501-2"></script>
 </body>
 </html>

@@ -26,8 +26,8 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(UserAddress)
 class UserAddressAdmin(admin.ModelAdmin):
-    list_display = ('user', 'title', 'region', 'city', 'address', 'is_default', 'created_at')
-    list_filter = ('region', 'city', 'is_default', 'created_at')
-    search_fields = ('user__phone', 'user__full_name', 'title', 'address', 'city__name_en', 'region__name_en')
+    list_display = ('user', 'title', 'full_address', 'is_default', 'created_at')
+    list_filter = ('is_default', 'created_at')
+    search_fields = ('user__phone', 'user__full_name', 'title', 'full_address')
     readonly_fields = ('created_at', 'updated_at')
 

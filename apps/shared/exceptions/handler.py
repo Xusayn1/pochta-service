@@ -152,9 +152,14 @@ class DRFExceptionHandler:
             # Extract error details for Telegram alert
             error_details = self._extract_error_details(request, exc)
 
-            # Format and send Telegram alert (only for critical errors)
-            formatted_message = self._format_telegram_message(error_details)
-            alert_to_telegram(formatted_message)
+            # Send structured alert details to Telegram helper.
+            alert_to_telegram(
+                traceback_text=error_details["traceback"],
+                message=error_details["message"],
+                request=request,
+                ip=error_details["client_ip"],
+                port=error_details["port"],
+            )
 
         except Exception as alert_error:
             # Log if Telegram alerting fails (avoid infinite recursion)
@@ -224,58 +229,6 @@ class DRFExceptionHandler:
             'request_path': request_path,
             'request_method': request_method
         }
-
-    def _format_telegram_message(self, error_details: Dict[str, Any]) -> str:
-        """
-        Format error details into a visually appealing Telegram message.
-
-        Args:
-            error_details: Dictionary containing error information
-
-        Returns:
-            Formatted HTML message for Telegram
-        """
-        # Sanitize text for Telegram HTML formatting
-        safe_message = self._escape_html(error_details['message'])
-        safe_traceback = self._escape_html(error_details['traceback'])
-        safe_ip = self._escape_html(str(error_details['client_ip']))
-        safe_port = self._escape_html(str(error_details['port']))
-
-        # Create formatted message with emojis and HTML formatting
-        formatted_message = (
-            "❌ <b>Exception Alert</b> ❌\n\n"
-            f"<b>✍️ Message:</b> <code>{safe_message}</code>\n\n"
-            f"<b>🔖 Traceback:</b> <code>{safe_traceback}</code>\n\n"
-            f"<b>🌐 IP Address/Port:</b> <code>{safe_ip}:{safe_port}</code>\n\n"
-        )
-
-        return formatted_message
-
-    @staticmethod
-    def _escape_html(text: str) -> str:
-        """
-        Escape HTML characters for safe Telegram HTML formatting.
-
-        Args:
-            text: Raw text that may contain HTML characters
-
-        Returns:
-            HTML-escaped text safe for Telegram
-        """
-        if not text:
-            return 'N/A'
-
-        # Escape HTML entities for Telegram
-        html_escape_table = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#x27;'
-        }
-
-        return ''.join(html_escape_table.get(char, char) for char in str(text))
-
 
 # Create handler instance
 exception_handler_instance = DRFExceptionHandler()

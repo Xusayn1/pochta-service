@@ -6,9 +6,20 @@ function extractErrorMessage(data, fallback) {
   if (!data) return fallback;
   if (typeof data.detail === "string") return data.detail;
   if (typeof data.non_field_errors?.[0] === "string") return data.non_field_errors[0];
-  for (const value of Object.values(data)) {
+
+  const prettifyFieldName = (fieldName) => {
+    return fieldName
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  for (const [field, value] of Object.entries(data)) {
     if (Array.isArray(value) && typeof value[0] === "string") {
-      return value[0];
+      return `${prettifyFieldName(field)}: ${value[0]}`;
+    }
+
+    if (typeof value === "string" && value.trim()) {
+      return `${prettifyFieldName(field)}: ${value}`;
     }
   }
   return fallback;
@@ -81,6 +92,7 @@ async function submitLoginForm(event) {
 async function submitRegisterForm(event) {
   event.preventDefault();
 
+  const phone = document.querySelector("#phone")?.value.trim();
   const username = document.querySelector("#username")?.value.trim();
   const email = document.querySelector("#email")?.value.trim();
   const password = document.querySelector("#regPassword")?.value;
@@ -92,7 +104,7 @@ async function submitRegisterForm(event) {
   if (errorBox) errorBox.textContent = "";
   if (successBox) successBox.textContent = "";
 
-  if (!username || !email || !password || !confirmPassword || !role) {
+  if (!phone || !username || !email || !password || !confirmPassword || !role) {
     if (errorBox) errorBox.textContent = "Please fill in all required fields.";
     return;
   }
@@ -105,6 +117,7 @@ async function submitRegisterForm(event) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      phone,
       username,
       email,
       password,
@@ -134,19 +147,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const isAuth = !!getStoredToken("access_token");
   const role = localStorage.getItem("user_role");
 
-  if (pathname.startsWith("/courier-dashboard")) {
-    if (!isAuth) {
-      window.location.href = "/login/";
-      return;
-    }
-    if (role !== "courier") {
-      window.location.href = "/";
-      return;
-    }
-  }
-
+  // Redirect authenticated users away from login/register pages
   if (isAuth && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
-    window.location.href = role === "courier" ? "/courier-dashboard/" : "/";
+    if (role === "courier") {
+      window.location.href = "/courier-dashboard/";
+    } else if (role === "manager") {
+      window.location.href = "/custom-admin/";
+    } else {
+      window.location.href = "/customer-dashboard/";
+    }
     return;
   }
 

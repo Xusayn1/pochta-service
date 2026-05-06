@@ -1,21 +1,35 @@
 from rest_framework import serializers
 
+from apps.locations.models import Region
 from apps.orders.models import Order
 from apps.tracking.serializers.v1 import TrackingEventSerializer
 from apps.users.models import PHONE_REGEX, UserAddress
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating new orders"""
+    """Simplified serializer for creating new orders - only essential fields"""
     order_number = serializers.CharField(read_only=True)
     status = serializers.CharField(read_only=True)
     price = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     estimated_delivery = serializers.DateTimeField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
+    recipient_name = serializers.CharField(required=False, allow_blank=True)
+    to_region = serializers.PrimaryKeyRelatedField(
+        queryset=Region.objects.filter(is_active=True),
+        required=False,
+        allow_null=True,
+    )
+    service_type = serializers.ChoiceField(
+        choices=Order.SERVICE_TYPE_CHOICES,
+        required=False,
+        default="standard",
+    )
+    notes = serializers.CharField(required=False, allow_blank=True)
     sender_address = serializers.PrimaryKeyRelatedField(
         queryset=UserAddress.objects.none(),
         required=False,
         allow_null=True,
+        help_text="Pickup address ID (optional)"
     )
 
     class Meta:
@@ -26,11 +40,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             'recipient_name',
             'recipient_phone',
             'recipient_address',
-            'item_description',
             'to_region',
             'service_type',
             'weight_kg',
-            'declared_value',
             'notes',
             'status',
             'price',
@@ -52,11 +64,6 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     def validate_weight_kg(self, value):
         if value <= 0:
             raise serializers.ValidationError("Weight must be greater than zero.")
-        return value
-
-    def validate_declared_value(self, value):
-        if value < 0:
-            raise serializers.ValidationError("Declared value cannot be negative.")
         return value
 
 

@@ -30,18 +30,31 @@
     .dashboard-card h3 { margin-top: 0; }
     .order-form { max-width: 500px; }
     .order-form .form-group { margin-bottom: 15px; }
+    /* Keep contact fields readable on this light page. */
+    .contact-form .form-group input,
+    .contact-form .form-group select,
+    .contact-form .form-group textarea {
+      background: #f6f8ff;
+      color: #111;
+      caret-color: #111;
+      border: 1px solid #ddd;
+      cursor: text;
+    }
+    .contact-form .form-group textarea {
+      line-height: 1.45;
+    }
   </style>
 </head>
 <body>
 
   <!-- NAVBAR -->
   <nav id="navbar">
-    <a href="#" class="nav-logo" onclick="goToPage('home')">Pochta<span>·</span>Service</a>
+    <a href="/" class="nav-logo">Pochta<span>·</span>Service</a>
     <ul class="nav-links">
-      <li><a href="#" onclick="goToPage('home')">Home</a></li>
-      <li><a href="#services">Services</a></li>
-      <li><a href="#track">Track</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="/">Home</a></li>
+      <li><a href="#services" onclick="goToSection('services'); return false;">Services</a></li>
+      <li><a href="#track" onclick="goToSection('track'); return false;">Track</a></li>
+      <li><a href="#contact" onclick="goToSection('contact'); return false;">Contact</a></li>
     </ul>
     <div class="navbar-auth" id="navAuth">
       <button onclick="goToPage('login')">Login</button>
@@ -67,7 +80,7 @@
         <h1>Deliver with<br><em>Distinction</em></h1>
         <p class="hero-sub">Pochta-Service redefines logistics in Uzbekistan – combining precision timing, white-glove care, and nationwide reach into a single, seamless delivery experience.</p>
         <div class="hero-actions">
-          <a href="#" class="btn-primary" onclick="goToPage('track')"><span>Track Package</span></a>
+          <a href="#track" class="btn-primary" onclick="goToSection('track'); return false;"><span>Track Package</span></a>
           <a href="#" class="btn-ghost" onclick="goToPage('register')">
             Send a Package
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -135,6 +148,10 @@
       <div class="form-group">
         <label>Password *</label>
         <input type="password" id="regPassword" placeholder="Enter password">
+      </div>
+      <div class="form-group">
+        <label>Confirm Password *</label>
+        <input type="password" id="regConfirmPassword" placeholder="Confirm password">
       </div>
       <div class="form-group">
         <label>Account Type</label>
@@ -223,8 +240,8 @@
           <h3>Create Order</h3>
           <form class="order-form" id="orderForm">
             <div class="form-group">
-              <label>Pickup Address *</label>
-              <select id="orderSenderAddress" required>
+              <label>Pickup Address</label>
+              <select id="orderSenderAddress">
                 <option value="">Select saved address...</option>
               </select>
             </div>
@@ -288,6 +305,18 @@
       loadTokens();
       updateNavBar();
       setupEventListeners();
+
+      // Role-based redirect guard: couriers should NOT be on app.html
+      const userRole = localStorage.getItem('user_role');
+      if (accessToken && userRole === 'courier') {
+        window.location.href = '/courier-dashboard/';
+        return;
+      }
+      if (accessToken && userRole === 'manager') {
+        window.location.href = '/custom-admin/';
+        return;
+      }
+
       if (accessToken) {
         loadUserAddresses();
         loadOrders();
@@ -478,9 +507,21 @@
       window.scrollTo(0, 0);
     }
 
+    function goToSection(sectionId) {
+      // Ensure home page is visible before trying to scroll to sections.
+      goToPage('home');
+      requestAnimationFrame(() => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+
     async function register() {
       const phone = document.querySelector('#regPhone').value.trim();
       const password = document.querySelector('#regPassword').value.trim();
+      const confirm_password = document.querySelector('#regConfirmPassword').value.trim();
       const role = document.querySelector('#regRole').value;
       
       const errorDiv = document.querySelector('#regError');
@@ -488,8 +529,13 @@
       errorDiv.textContent = '';
       successDiv.textContent = '';
       
-      if (!phone || !password) {
+      if (!phone || !password || !confirm_password) {
         errorDiv.textContent = 'Please fill in all fields';
+        return;
+      }
+      
+      if (password !== confirm_password) {
+        errorDiv.textContent = 'Passwords do not match';
         return;
       }
       
@@ -497,14 +543,33 @@
         const res = await fetch(`${API}/api/v1/users/register/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, password, role })
+          body: JSON.stringify({ phone, password, confirm_password, role })
         });
         
         const data = await res.json();
         
         if (res.ok) {
-          successDiv.textContent = 'Registration successful! Redirecting to login...';
-          setTimeout(() => goToPage('login'), 2000);
+          const tokens = extractTokens(data);
+          saveTokens(tokens.access, tokens.refresh);
+          localStorage.setItem('phone', data.user?.phone || phone);
+          const role = data.user?.role || 'user';
+          localStorage.setItem('user_role', role);
+          const redirectTo = data.redirect_to;
+          
+          if (role === 'courier') {
+            successDiv.textContent = 'Registration successful! Redirecting to courier dashboard...';
+            setTimeout(() => window.location.href = redirectTo || '/courier-dashboard/', 800);
+          } else if (role === 'manager') {
+            successDiv.textContent = 'Registration successful! Redirecting to admin panel...';
+            setTimeout(() => window.location.href = redirectTo || '/custom-admin/', 800);
+          } else {
+            successDiv.textContent = 'Registration successful! Redirecting to dashboard...';
+            setTimeout(() => {
+              goToPage('dashboard');
+              loadUserAddresses();
+              loadOrders();
+            }, 800);
+          }
         } else {
           errorDiv.textContent = getErrorMessage(data, 'Registration failed');
         }
@@ -538,9 +603,20 @@
           const tokens = extractTokens(data);
           saveTokens(tokens.access, tokens.refresh);
           localStorage.setItem('phone', data.user?.phone || phone);
-          goToPage('dashboard');
-          loadUserAddresses();
-          loadOrders();
+          const role = data.user?.role || 'user';
+          localStorage.setItem('user_role', role);
+          const redirectTo = data.redirect_to;
+          
+          // Role-based redirect after login
+          if (role === 'courier') {
+            window.location.href = redirectTo || '/courier-dashboard/';
+          } else if (role === 'manager') {
+            window.location.href = redirectTo || '/custom-admin/';
+          } else {
+            goToPage('dashboard');
+            loadUserAddresses();
+            loadOrders();
+          }
         } else {
           errorDiv.textContent = getErrorMessage(data, 'Login failed');
         }
@@ -552,6 +628,7 @@
     function logout() {
       clearTokens();
       localStorage.removeItem('phone');
+      localStorage.removeItem('user_role');
       goToPage('home');
     }
 
@@ -683,12 +760,18 @@
       errorDiv.textContent = '';
       successDiv.textContent = '';
 
+      const regionSelect = document.querySelector('#addressRegion');
+      const citySelect = document.querySelector('#addressCity');
+      const regionLabel = regionSelect?.options?.[regionSelect.selectedIndex]?.text || '';
+      const cityLabel = citySelect?.options?.[citySelect.selectedIndex]?.text || '';
+      const streetAddress = document.querySelector('#addressLine').value.trim();
+      const landmark = document.querySelector('#addressLandmark').value.trim();
+
+      const addressParts = [regionLabel, cityLabel, streetAddress, landmark].filter(Boolean);
+
       const payload = {
         title: document.querySelector('#addressTitle').value.trim(),
-        region: document.querySelector('#addressRegion').value,
-        city: document.querySelector('#addressCity').value,
-        address: document.querySelector('#addressLine').value.trim(),
-        landmark: document.querySelector('#addressLandmark').value.trim(),
+        full_address: addressParts.join(', '),
         is_default: document.querySelector('#addressDefault').checked,
       };
 
@@ -769,8 +852,15 @@
         return;
       }
 
-      msgDiv.textContent = 'Your message has been submitted successfully.';
+      msgDiv.textContent = 'Your message has been submitted successfully. Redirecting to your orders...';
       msgDiv.className = 'success';
+      
+      // Redirect to dashboard to view orders and tracking
+      setTimeout(() => {
+        goToPage('dashboard');
+        loadUserAddresses();
+        loadOrders();
+      }, 1500);
     }
 
     async function createOrder(e) {
@@ -786,7 +876,7 @@
         recipient_name: document.querySelector('#orderRecipient').value,
         recipient_phone: document.querySelector('#orderPhone').value,
         recipient_address: document.querySelector('#orderAddress').value,
-        to_region: document.querySelector('#orderRegion').value,
+        to_region: document.querySelector('#orderRegion').value || null,
         service_type: normalizeServiceType(document.querySelector('#orderService').value),
         weight_kg: parseFloat(document.querySelector('#orderWeight').value),
         notes: document.querySelector('#orderNotes').value

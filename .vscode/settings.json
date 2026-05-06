@@ -1,17 +1,5 @@
 {
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
     "python.terminal.activateEnvironment": true,
-    "python.envFile": "${workspaceFolder}/.env",
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}",
-        "${workspaceFolder}/apps"
-    ],
-    "python.analysis.autoSearchPaths": true,
-    "python.analysis.useLibraryCodeForTypes": true,
-    "cursorpyright.analysis.autoSearchPaths": true,
-    "cursorpyright.analysis.extraPaths": [
-        "${workspaceFolder}",
-        "${workspaceFolder}/apps"
-    ],
-    "cursorpyright.analysis.useLibraryCodeForTypes": true
+    "python.envFile": "${workspaceFolder}/.env"
 }

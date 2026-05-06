@@ -1,5 +1,8 @@
 from django.http import JsonResponse
-import time
+
+from apps.orders.models import Order
+from apps.tracking.models import TrackingEvent
+
 
 def mock_track_parcel(request):
     tracking_number = request.GET.get('tracking_number')
@@ -8,19 +11,48 @@ def mock_track_parcel(request):
     if not tracking_number:
         return JsonResponse({"error": "tracking_number query parameter is required"}, status=400)
 
-    # Basic validation for the mock
     if len(tracking_number) < 5:
         return JsonResponse({"error": "Invalid tracking number. Must be at least 5 characters long."}, status=400)
 
-    # Return mock data
+    # Look up the real order
+    try:
+        order = Order.objects.select_related('to_region').get(order_number=tracking_number)
+    except Order.DoesNotExist:
+        return JsonResponse({"error": "Tracking number not found."}, status=404)
+
+    # Build a human-readable status label
+    STATUS_LABELS = {
+        "pending": "Order Confirmed",
+        "confirmed": "Order Confirmed",
+        "picked_up": "Picked Up",
+        "in_transit": "In Transit",
+        "out_for_delivery": "Out for Delivery",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled",
+    }
+    status_label = STATUS_LABELS.get(order.status, order.status)
+
+    # Fetch real tracking events ordered oldest → newest
+    events = TrackingEvent.objects.filter(order=order).order_by('timestamp')
+    history = []
+    for event in events:
+        event_label = STATUS_LABELS.get(event.event_type, event.event_type.replace("_", " ").title())
+        history.append({
+            "step": event_label,
+            "date": event.timestamp.strftime("%Y-%m-%d %H:%M"),
+            "description": event.description,
+            "location": event.location,
+        })
+
+    # ETA
+    eta = order.estimated_delivery.strftime("%Y-%m-%d") if order.estimated_delivery else "N/A"
+
     return JsonResponse({
-        "tracking_number": tracking_number,
-        "status": "In Transit",
-        "eta": "2026-04-23",
+        "tracking_number": order.order_number,
+        "status": status_label,
+        "eta": eta,
         "phone_provided": bool(phone),
-        "history": [
-            {"step": "Order Confirmed", "date": "2026-04-20 10:00"},
-            {"step": "Picked Up", "date": "2026-04-21 14:30"},
-            {"step": "In Transit", "date": "2026-04-22 09:15"}
-        ]
+        "recipient_name": order.recipient_name,
+        "service_type": order.service_type,
+        "history": history,
     })

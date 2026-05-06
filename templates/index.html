@@ -853,7 +853,8 @@
 
       try {
         await submitContactMessage(payload);
-        alert('Message sent successfully.');
+        alert('Message sent successfully. Redirecting to order page...');
+        window.location.href = '/app/';
       } catch (error) {
         alert(error.message || 'Message failed to send.');
       }

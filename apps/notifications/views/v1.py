@@ -33,7 +33,8 @@ class MarkReadView(generics.UpdateAPIView):
 
 class ContactMessageSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=255)
-    email = serializers.EmailField()
+    # Keep email optional/flexible for landing-form UX.
+    email = serializers.CharField(max_length=255, required=False, allow_blank=True)
     phone = serializers.CharField(max_length=20)
     service_type = serializers.CharField(max_length=100, required=False, allow_blank=True)
     message = serializers.CharField(required=False, allow_blank=True)
@@ -49,7 +50,7 @@ class ContactMessageCreateView(APIView):
 
         details = (
             f"Contact request from {payload['full_name']} "
-            f"({payload['phone']}, {payload['email']}).\n"
+            f"({payload['phone']}, {payload.get('email') or 'no-email'}).\n"
             f"Service: {payload.get('service_type') or 'not specified'}\n"
             f"Message: {payload.get('message') or '-'}"
         )

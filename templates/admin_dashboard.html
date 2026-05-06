@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pochta Admin | Modern Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/css/admin_styles.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-box-open text-primary"></i>
+                    <span>Pochta<span class="text-primary">Admin</span></span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                <li class="active">
+                    <a href="#" id="nav-dashboard">
+                        <i class="fa-solid fa-chart-pie"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-orders">
+                        <i class="fa-solid fa-box"></i> Orders
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-shipments">
+                        <i class="fa-solid fa-truck"></i> Shipments
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-payments">
+                        <i class="fa-solid fa-credit-card"></i> Payments
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-locations">
+                        <i class="fa-solid fa-map"></i> Locations
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-users">
+                        <i class="fa-solid fa-users"></i> Users
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-notifications">
+                        <i class="fa-solid fa-bell"></i> Notifications
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-settings">
+                        <i class="fa-solid fa-gear"></i> Settings
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="search-container">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" class="search-bar" placeholder="Search orders, users...">
+                </div>
+                <div class="user-profile">
+                    <span class="user-name">Super Admin</span>
+                    <div class="avatar">SA</div>
+                    <button id="logout-btn" class="btn btn-sm" style="margin-left: 10px; border: 1px solid var(--border-color); background: transparent;">Logout</button>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <div class="dashboard-content" id="view-dashboard">
+                <div class="page-header">
+                    <h1>Overview</h1>
+                    <p>Welcome back! Here's what's happening today.</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid" id="admin-stats">
+                    <div class="stat-card"><div class="stat-info">Loading...</div></div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2>Recent Orders</h2>
+                        <button class="btn btn-primary btn-sm">View All</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" id="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Destination</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders View -->
+            <div class="dashboard-content hidden" id="view-orders">
+                <div class="page-header">
+                    <h1>All Orders</h1>
+                    <p>Manage and track all system orders.</p>
+                </div>
+                <div class="content-section">
+                    <div class="table-responsive">
+                        <table class="table" id="all-orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Courier</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-content hidden" id="view-users">
+                <div class="page-header">
+                    <h1>Users</h1>
+                    <p>Manage all registered customers, couriers, and managers.</p>
+                </div>
+                <div class="content-section">
+                    <div class="table-responsive">
+                        <table class="table" id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Name</th>
+                                    <th>Phone / Email</th>
+                                    <th>Role</th>
+                                    <th>Joined</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipments View -->
+            <div class="dashboard-content hidden" id="view-shipments">
+                <div class="page-header">
+                    <h1>Shipments</h1>
+                    <p>Track courier assignments and delivery statuses.</p>
+                </div>
+                <div class="content-section">
+                    <div class="table-responsive">
+                        <table class="table" id="shipments-table">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Courier</th>
+                                    <th>Pickup</th>
+                                    <th>Delivery</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments View -->
+            <div class="dashboard-content hidden" id="view-payments">
+                <div class="page-header">
+                    <h1>Payments</h1>
+                    <p>Review financial transactions and payment methods.</p>
+                </div>
+                <div class="content-section">
+                    <div class="table-responsive">
+                        <table class="table" id="payments-table">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Amount (UZS)</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Locations View -->
+            <div class="dashboard-content hidden" id="view-locations">
+                <div class="page-header">
+                    <h1>Locations</h1>
+                    <p>Manage operational regions and cities.</p>
+                </div>
+                <div class="content-section">
+                    <div class="table-responsive">
+                        <table class="table" id="locations-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Name</th>
+                                    <th>Parent Region</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications View -->
+            <div class="dashboard-content hidden" id="view-notifications">
+                <div class="page-header">
+                    <h1>Notifications</h1>
+                    <p>System alerts and user notifications history.</p>
+                </div>
+                <div class="content-section">
+                    <div class="table-responsive">
+                        <table class="table" id="notifications-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>Message</th>
+                                    <th>Read Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-content hidden" id="view-settings">
+                <div class="page-header">
+                    <h1>System Settings</h1>
+                    <p>Configure project-wide parameters and operations.</p>
+                </div>
+                <div class="content-section" style="padding: 24px; max-width: 600px;">
+                    <form id="settings-form">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Base Delivery Fee (UZS)</label>
+                            <input type="number" id="setting-fee" class="search-bar" style="width: 100%; border: 1px solid var(--border-color);" value="15000">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Support Email</label>
+                            <input type="email" id="setting-email" class="search-bar" style="width: 100%; border: 1px solid var(--border-color);" value="support@pochta-service.uz">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display:flex; gap:8px; align-items:center; cursor: pointer;">
+                                <input type="checkbox" id="setting-maintenance">
+                                Enable Maintenance Mode
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals and Overlays -->
+    <div id="loader-overlay" class="loader-overlay hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/admin_dashboard.js"></script>
+</body>
+</html>

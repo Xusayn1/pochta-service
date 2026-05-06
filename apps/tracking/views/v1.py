@@ -6,7 +6,11 @@ from rest_framework.response import Response
 from apps.orders.models import Order
 from apps.shared.permissions import IsCourier, IsManager
 from apps.tracking.models import TrackingEvent
-from apps.tracking.serializers.v1 import PublicTrackingSerializer, TrackingEventSerializer
+from apps.tracking.serializers.v1 import (
+    PublicTrackingEventSerializer,
+    PublicTrackingSerializer,
+    TrackingEventSerializer,
+)
 
 
 class PublicTrackView(generics.RetrieveAPIView):
@@ -30,7 +34,7 @@ class PublicTrackView(generics.RetrieveAPIView):
             'status': order.status,
             'recipient_name': order.recipient_name,
             'estimated_delivery': order.estimated_delivery,
-            'events': TrackingEventSerializer(events, many=True).data
+            'events': PublicTrackingEventSerializer(events, many=True).data
         }
 
         serializer = self.get_serializer(data)
