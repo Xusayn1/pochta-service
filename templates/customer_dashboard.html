@@ -9,6 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/styles.css" />
   <style>
+    body { cursor: auto !important; }
+    a, button, select { cursor: pointer !important; }
+    input, textarea { cursor: text !important; }
     .auth-container { max-width: 400px; margin: 50px auto; padding: 40px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
@@ -51,10 +54,9 @@
   <nav id="navbar">
     <a href="#" class="nav-logo" onclick="goToPage('home')">Pochta<span>·</span>Service</a>
     <ul class="nav-links">
-      <li><a href="#" onclick="goToPage('home')">Home</a></li>
-      <li><a href="#services">Services</a></li>
-      <li><a href="#track">Track</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="/" style="cursor: pointer !important;">Main Website</a></li>
+      <li><a href="#" onclick="goToPage('dashboard')">Dashboard</a></li>
+      <li><a href="#" onclick="goToPage('contact')">Contact Support</a></li>
     </ul>
     <div class="navbar-auth" id="navAuth">
       <button onclick="window.location.href='/login/'">Login</button>
@@ -68,7 +70,7 @@
 
   <!-- Pages -->
   <div id="page-home" class="page active">
-    <div style="padding: 40px; text-align: center;">
+    <div style="padding: 120px 40px 40px; text-align: center;">
       <h1>Welcome to Your Pochta-Service Dashboard</h1>
       <p>Manage your shipments, track packages, and more.</p>
       <button onclick="goToPage('dashboard')" class="btn-track">Go to Dashboard</button>
@@ -76,7 +78,10 @@
   </div>
 
   <div id="page-dashboard" class="page">
-    <div style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <div style="max-width: 1000px; margin: 0 auto; padding: 120px 20px 40px;">
+      <div style="margin-bottom: 20px;">
+        <a href="/" class="back-link" style="position: relative; z-index: 10; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #111; font-weight: 600; padding: 8px 16px; background: #f6f8ff; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">&larr; Back to Main Website</a>
+      </div>
       <h1>📦 Orders & Tracking</h1>
       
       <div class="dashboard-grid">
@@ -120,6 +125,9 @@
           </form>
           <div id="orderError" class="error"></div>
           <div id="orderSuccess" class="success"></div>
+          <div id="backHomeBtnContainer" style="display: none; margin-top: 15px;">
+             <a href="/" class="btn-submit" style="display: block; text-align: center; text-decoration: none; background: #C9A84C; color: white;">Back to Main Home</a>
+          </div>
         </div>
 
         <div class="dashboard-card">
@@ -136,13 +144,13 @@
           <input type="text" placeholder="Enter tracking number (e.g., PS-12345)" />
           <button onclick="trackPackage()">Track</button>
         </div>
-        <p style="color: #666; font-size: 12px;"></p>
+        <p id="trackResult" style="color: #666; font-size: 14px; margin-top: 15px;"></p>
       </div>
     </div>
   </div>
 
   <div id="page-contact" class="page">
-    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 120px 20px 40px;">
       <h1>Send Message</h1>
       <form class="contact-form">
         <div class="form-group">
@@ -342,9 +350,11 @@
         if (res.ok) {
           successDiv.textContent = `✓ Order created! Tracking: ${data.order_number}`;
           document.querySelector('#orderForm').reset();
+          document.querySelector('#backHomeBtnContainer').style.display = 'block';
           setTimeout(loadOrders, 1000);
         } else {
           errorDiv.textContent = getErrorMessage(data, 'Order creation failed');
+          document.querySelector('#backHomeBtnContainer').style.display = 'none';
         }
       } catch (e) {
         if (e.message !== 'AUTH_REQUIRED') {
@@ -355,21 +365,41 @@
 
     async function trackPackage() {
       const num = document.querySelector('.track-form input').value.trim();
+      const resultDiv = document.querySelector('#trackResult');
       if (!num) {
-        alert('Please enter a tracking number');
+        resultDiv.textContent = 'Please enter a tracking number';
         return;
       }
+      
+      resultDiv.textContent = 'Tracking...';
+      
       try {
         const res = await fetch(`${API}/api/v1/tracking/${num}/`);
         if (!res.ok) {
-          alert('Tracking number not found');
+          resultDiv.textContent = 'Tracking number not found';
           return;
         }
         const data = await res.json();
-        document.querySelector('.track-form p').textContent =
-          `📦 ${data.order_number} — ${data.status.replace(/_/g,' ').toUpperCase()}`;
+        
+        if (!data || !data.status) {
+           resultDiv.textContent = 'Invalid tracking data received.';
+           return;
+        }
+        
+        let statusText = data.status.replace(/_/g,' ').toUpperCase();
+        // Translate english statuses to Uzbek for UI display if needed
+        const statusMap = {
+          'PENDING': 'QABUL QILINDI', 'CONFIRMED': 'QABUL QILINDI',
+          'PICKED UP': 'YUK OLIB KETILDI', 'IN TRANSIT': "YO'LDA",
+          'OUT FOR DELIVERY': 'ETKAZISHGA YUBORILDI', 'DELIVERED': 'ETKAZILDI',
+          'CANCELLED': 'BEKOR QILINGAN'
+        };
+        statusText = statusMap[statusText] || statusText;
+        
+        document.querySelector('#trackResult').innerHTML =
+          `📦 <strong>${data.order_number}</strong> — ${statusText}<br><small>ETA: ${data.estimated_delivery ? new Date(data.estimated_delivery).toLocaleDateString() : 'N/A'}</small>`;
       } catch (e) {
-        alert('Error tracking package');
+        document.querySelector('#trackResult').textContent = 'Error tracking package: ' + e.message;
       }
     }
 

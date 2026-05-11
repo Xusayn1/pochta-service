@@ -22,13 +22,13 @@ def mock_track_parcel(request):
 
     # Build a human-readable status label
     STATUS_LABELS = {
-        "pending": "Order Confirmed",
-        "confirmed": "Order Confirmed",
-        "picked_up": "Picked Up",
-        "in_transit": "In Transit",
-        "out_for_delivery": "Out for Delivery",
-        "delivered": "Delivered",
-        "cancelled": "Cancelled",
+        "pending": "Qabul qilindi",
+        "confirmed": "Qabul qilindi",
+        "picked_up": "Yuk olib ketildi",
+        "in_transit": "Yo'lda",
+        "out_for_delivery": "Etkazishga yuborildi",
+        "delivered": "Etkazildi",
+        "cancelled": "Bekor qilingan",
     }
     status_label = STATUS_LABELS.get(order.status, order.status)
 

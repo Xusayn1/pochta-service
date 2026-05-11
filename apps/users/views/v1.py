@@ -11,7 +11,7 @@ This module handles:
 import logging
 from typing import cast
 
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render  # type: ignore[import-untyped]
 from rest_framework import generics, permissions, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -160,7 +160,7 @@ class AddressListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):  # type: ignore[override]
-        return UserAddress.objects.filter(user=self.request.user)
+        return UserAddress.objects.filter(user=self.request.user)  # type: ignore[attr-defined]
 
     def perform_create(self, serializer):
         try:
@@ -192,7 +192,7 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):  # type: ignore[override]
-        return UserAddress.objects.filter(user=self.request.user)
+        return UserAddress.objects.filter(user=self.request.user)  # type: ignore[attr-defined]
 
     def perform_destroy(self, instance):
         user = instance.user
@@ -201,7 +201,7 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         if was_default:
             next_address = (
-                UserAddress.objects.filter(user=user)
+                UserAddress.objects.filter(user=user)  # type: ignore[attr-defined]
                 .order_by("-created_at")
                 .first()
             )
